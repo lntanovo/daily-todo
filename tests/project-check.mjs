@@ -1,0 +1,64 @@
+import { readFile } from "node:fs/promises";
+
+const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+
+const required = [
+  ["页面标题", /<title>Today \/ 今日待办<\/title>/],
+  ["周导航", /id="days"/],
+  ["任务清单", /id="taskList"/],
+  ["新增按钮", /id="addButton"/],
+  ["主题按钮", /id="themeButton"/],
+  ["登录表单", /id="loginForm"/],
+  ["同尺寸注册入口", /id="openRegisterButton"[^>]*>注册 \/ SIGN UP/],
+  ["注册表单", /id="registerForm"/],
+  ["注册成功账号", /id="generatedAccount"/],
+  ["登录页品牌标题", /MAKE TODAY[\s\S]*COUNT[\s\S]*让今天算数/],
+  ["作者署名", /made by lntano/],
+  ["固定密码显隐按钮", /id="passwordToggle"/],
+  ["密码显隐交互", /function setPasswordVisibility\(visible\)/],
+  ["用户名密码登录", /signInWithPassword\(\{ username, password \}\)/],
+  ["真实会话检查", /auth\.getSession\(\)/],
+  ["拒绝匿名会话", /user\?\.is_anonymous/],
+  ["CloudBase PostgreSQL", /cloudApp\.rdb\(\)/],
+  ["云端任务表", /todo_tasks/],
+  ["云端完成记录表", /todo_daily_completions/],
+  ["本机数据迁移", /id="migrateButton"/],
+  ["本地任务存储键", /daily-todo\.tasks\.v1/],
+  ["本地完成记录键", /daily-todo\.dailyCompletions\.v1/],
+];
+
+const registration = await readFile(new URL("../src/registration.js", import.meta.url), "utf8");
+const registerFunction = await readFile(new URL("../cloudfunctions/register-friend/index.js", import.meta.url), "utf8");
+
+const failures = required.filter(([, pattern]) => !pattern.test(html));
+if (failures.length) {
+  console.error(`项目检查失败：${failures.map(([name]) => name).join("、")}`);
+  process.exit(1);
+}
+
+if (/<script[^>]+src=["']http:/i.test(html)) {
+  console.error("项目检查失败：发现不安全的 HTTP 脚本引用。");
+  process.exit(1);
+}
+
+if (/getLoginState\(|signInAnonymously\(|app\.database\(/.test(html)) {
+  console.error("项目检查失败：发现旧版登录、匿名降级或 NoSQL API。");
+  process.exit(1);
+}
+
+if (/One account, every device|待办事项将在登录后保存到你自己的云端空间/.test(html)) {
+  console.error("项目检查失败：登录页仍包含已删除的说明文字。");
+  process.exit(1);
+}
+
+if (!/\/api\/register/.test(registration) || !/externalUser/.test(registerFunction)) {
+  console.error("项目检查失败：注册页面没有连接到云端外部用户创建流程。");
+  process.exit(1);
+}
+
+if (/CLOUDBASE_API_KEY|TENCENTCLOUD_SECRET/.test(registration)) {
+  console.error("项目检查失败：浏览器注册代码中出现了服务端凭证字段。");
+  process.exit(1);
+}
+
+console.log(`项目检查通过：${required.length} 个关键入口均存在。`);

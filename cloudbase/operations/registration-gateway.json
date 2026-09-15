@@ -1,0 +1,15 @@
+{
+  "domain": "daily-todo-d3gq5mama7a468d02-1485775300.ap-shanghai.app.tcloudbase.com",
+  "path": "/api/register",
+  "upstreamResourceType": "SCF",
+  "upstreamResourceName": "register-friend",
+  "enableAuth": false,
+  "enablePathTransmission": true,
+  "qpsPolicy": {
+    "qpsTotal": 100,
+    "qpsPerClient": {
+      "limitBy": "ClientIP",
+      "limitValue": 1
+    }
+  }
+}
