@@ -1,4 +1,4 @@
-// Passwords stay in memory only. A random retry token prevents duplicate accounts.
+// Passwords stay in memory only. A random retry token prevents duplicate submissions.
 export function setupRegistration({ cloudConfig, el }) {
   let busy = false;
   let pendingToken = null;
@@ -64,10 +64,13 @@ export function setupRegistration({ cloudConfig, el }) {
     if (busy) return;
     const nickname = el("registerName").value.trim();
     const relation = el("registerRelation").value.trim();
+    const username = el("registerUsername").value.trim().toLowerCase();
+    el("registerUsername").value = username;
     const password = el("registerPassword").value;
     const categories = [/[a-z]/, /[A-Z]/, /[0-9]/, /[()!@#$%^&*|?><_-]/].filter(pattern => pattern.test(password)).length;
     const message = el("registerMessage");
     if (nickname.length < 2 || nickname.length > 32 || !relation || relation.length > 80) { message.textContent = "请填写 2–32 字的称呼，以及你和 lntano 的关系。"; return; }
+    if (!/^[a-z][a-z0-9_]{4,23}$/.test(username)) { message.textContent = "账号需要 5–24 位，以小写字母开头，只能使用小写字母、数字和下划线。"; return; }
     if (!/^[A-Za-z0-9][A-Za-z0-9()!@#$%^&*|?><_-]{7,31}$/.test(password) || categories < 3) { message.textContent = "密码需要 8–32 位，以字母或数字开头，并包含大写、小写、数字、允许的符号中至少三种。允许的符号：()!@#$%^&*|?><_-"; return; }
     if (password !== el("registerConfirm").value) { message.textContent = "两次密码不一样，请重新确认。"; return; }
     if (!cloudConfig.env || !cloudConfig.accessKey) { message.textContent = "注册服务尚未配置，请联系 lntano。"; return; }
@@ -82,7 +85,7 @@ export function setupRegistration({ cloudConfig, el }) {
       const response = await fetch("https://daily-todo-d3gq5mama7a468d02-1485775300.ap-shanghai.app.tcloudbase.com/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ nickname, relation, password, requestToken: pendingToken, website: el("registerWebsite").value }),
+        body: JSON.stringify({ nickname, relation, username, password, requestToken: pendingToken, website: el("registerWebsite").value }),
         signal: AbortSignal.timeout(45000)
       });
       if (!response.ok) throw new Error("REGISTRATION_GATEWAY_UNAVAILABLE");
@@ -94,12 +97,13 @@ export function setupRegistration({ cloudConfig, el }) {
           DAILY_LIMIT: "今天的注册名额已用完，请明天再来，或联系 lntano。",
           TOTAL_LIMIT: "当前注册名额已满，请联系 lntano。",
           BUSY: "上一次请求还在处理中，请保留此页面，90 秒后再试。",
-          CHANGED: "请恢复上次提交的称呼、关系和密码后重试，或联系 lntano。",
-          INVALID: "请检查称呼、关系和密码格式。"
+          CHANGED: "请恢复上次提交的称呼、关系、账号和密码后重试，或联系 lntano。",
+          USERNAME_TAKEN: "这个账号已经被使用，请换一个再试。",
+          INVALID: "请检查称呼、关系、账号和密码格式。"
         };
         throw Object.assign(new Error("REGISTRATION_FAILED"), { publicMessage: safeMessages[result?.code] });
       }
-      if (!/^ln_[a-f0-9]{16}$/.test(result.username || "")) throw new Error("账号返回异常，请联系 lntano。");
+      if (!/^[a-z][a-z0-9_]{4,23}$/.test(result.username || "")) throw new Error("账号返回异常，请联系 lntano。");
       lastAccount = result.username;
       el("generatedAccount").value = lastAccount;
       pendingToken = null;

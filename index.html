@@ -5,30 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Today / 今日待办</title>
   <meta name="description" content="中英混排的每日待办工作台，支持周视图、单日事项与时间段共同任务。">
-  <meta name="theme-color" content="#171717">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23171717'/%3E%3Cpath d='M17 34l10 10 21-25' fill='none' stroke='%239fd8e8' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
+  <meta name="theme-color" content="#f3ebdd">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3ebdd'/%3E%3Cpath d='M17 34l10 10 21-25' fill='none' stroke='%23c65432' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
   <!--
     DESIGN SYSTEM / 草稿契约
-    Dark Editorial: #171717 / #F3EFE6 / #9FD8E8，强对比、错位文字阴影、直角分隔。
-    Warm Paper: #F3EBDD / #24211D / #C65432，纸张色、墨色、印章红。
+    Warm Paper only: #F3EBDD / #24211D / #C65432，纸张色、墨色、印章红。
+    优先级：普通 #2F6F9F（蓝）/ 紧急 #B83A2F（红）；只在任务状态中使用。
     字体：Georgia + Microsoft YaHei；间距：8px 基线；圆角：0/14/999px；无装饰性阴影。
     页面节奏：工具栏 → 周导航 → 大标题与进度 → 任务清单；不使用无意义卡片嵌套。
   -->
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #171717;
-      --surface: #202020;
-      --ink: #f3efe6;
-      --muted: #aaa59c;
-      --line: #4b4945;
-      --accent: #9fd8e8;
-      --danger: #f28b73;
-      --display: Georgia, "Microsoft YaHei", "Noto Serif CJK SC", serif;
-      --body: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-    }
-
-    [data-theme="paper"] {
       color-scheme: light;
       --bg: #f3ebdd;
       --surface: #ebe0cd;
@@ -37,6 +24,10 @@
       --line: #b9ad9a;
       --accent: #c65432;
       --danger: #a82e23;
+      --priority-normal: #2f6f9f;
+      --priority-urgent: #b83a2f;
+      --display: Georgia, "Microsoft YaHei", "Noto Serif CJK SC", serif;
+      --body: "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
     }
 
     * { box-sizing: border-box; }
@@ -163,7 +154,7 @@
       text-transform: uppercase;
     }
 
-    [data-theme="paper"] .brand {
+    .brand {
       font-style: italic;
       text-decoration: underline 2px var(--accent);
       text-underline-offset: 7px;
@@ -213,7 +204,7 @@
       outline: 2px solid var(--accent); outline-offset: 4px;
     }
     .button.primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
-    [data-theme="paper"] .button.primary { background: var(--accent); border-color: var(--accent); color: #fff8ed; }
+    .button.primary { background: var(--accent); border-color: var(--accent); color: #fff8ed; }
 
     .week { padding: 24px 0 10px; }
     .week-head { justify-content: space-between; margin-bottom: 16px; }
@@ -232,7 +223,7 @@
     .day:last-child { border-right: 0; }
     .day:hover { background: color-mix(in oklch, var(--surface) 70%, transparent); }
     .day.active { background: var(--ink); color: var(--bg); }
-    [data-theme="paper"] .day.active { background: var(--accent); color: #fff8ed; }
+    .day.active { background: var(--accent); color: #fff8ed; }
     .day-name { display: block; font-size: 11px; letter-spacing: .12em; }
     .day-number { display: block; margin-top: 8px; font: 700 30px/1 var(--display); }
     .day-mark { display: block; margin-top: 8px; font-size: 10px; min-height: 12px; }
@@ -244,8 +235,7 @@
       margin: 0; max-width: 850px; font: 700 clamp(50px, 7.4vw, 94px)/1.15 var(--display);
       letter-spacing: -.055em; text-wrap: balance;
     }
-    [data-theme="dark"] h1 { text-shadow: 3px 3px 0 var(--accent); }
-    [data-theme="paper"] h1 { font-style: italic; max-width: 760px; }
+    h1 { font-style: italic; max-width: 760px; }
     .progress { min-width: 125px; text-align: right; }
     .progress strong { display: block; font: 700 40px/1 var(--display); }
     .progress span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
@@ -254,22 +244,25 @@
 
     .list { border-top: 1px solid var(--line); }
     .task-row { gap: 16px; min-height: 82px; border-bottom: 1px solid var(--line); }
-    [data-theme="paper"] .task-row { min-height: 92px; }
-    [data-theme="paper"] .task-row:nth-child(even) { background: color-mix(in oklch, var(--surface) 36%, transparent); }
+    .task-row { min-height: 92px; --priority-color: var(--priority-normal); }
+    .task-row.priority-urgent { --priority-color: var(--priority-urgent); }
+    .task-row:nth-child(even) { background: color-mix(in oklch, var(--surface) 36%, transparent); }
     .check {
       flex: 0 0 44px; width: 44px; height: 44px; border: 0; border-radius: 50%;
       background: transparent; cursor: pointer; position: relative;
     }
-    .check::before { content: ""; position: absolute; inset: 8px; border: 2px solid var(--ink); border-radius: 50%; }
-    .task-row.done .check::after { content: ""; position: absolute; inset: 15px; border-radius: 50%; background: var(--accent); }
+    .check::before { content: ""; position: absolute; inset: 8px; border: 2px solid var(--priority-color); border-radius: 50%; }
+    .task-row.done .check::after { content: ""; position: absolute; inset: 15px; border-radius: 50%; background: var(--priority-color); }
     .task-content { flex: 1; min-width: 0; padding: 16px 0; }
     .task-title { margin: 0; overflow-wrap: anywhere; font: 700 clamp(23px, 2.6vw, 36px)/1.25 var(--display); }
-    .task-meta { margin-top: 7px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; overflow-wrap: anywhere; }
+    .task-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 7px 9px; margin-top: 8px; color: var(--muted); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; overflow-wrap: anywhere; }
     .task-type {
-      display: inline-block; margin-right: 9px; padding: 3px 7px; border: 1px solid currentColor;
+      display: inline-block; padding: 3px 7px; border: 1px solid currentColor;
       border-radius: 999px; color: var(--accent); font-weight: 700; letter-spacing: .06em;
     }
-    .task-row.done .task-title { color: var(--muted); text-decoration: line-through 2px var(--accent); }
+    .priority-badge { padding: 3px 7px; border: 1px solid currentColor; border-radius: 999px; color: var(--priority-color); font-weight: 700; }
+    .task-time { color: var(--priority-color); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .task-row.done .task-title { color: var(--muted); text-decoration: line-through 2px var(--priority-color); }
     .task-actions { display: flex; flex-shrink: 0; gap: 6px; opacity: 0; transition: opacity .15s ease; }
     .task-row:hover .task-actions, .task-actions:focus-within { opacity: 1; }
     .task-action { min-width: 44px; height: 44px; border: 0; background: transparent; cursor: pointer; color: var(--muted); }
@@ -279,7 +272,7 @@
     .empty { padding: 62px 0; color: var(--muted); }
     .empty strong { display: block; color: var(--ink); font: 700 28px/1.2 var(--display); }
     .empty span { display: block; margin-top: 10px; }
-    [data-theme="paper"] .empty { border-bottom: 1px solid var(--line); }
+    .empty { border-bottom: 1px solid var(--line); }
 
     dialog {
       width: min(560px, calc(100% - 32px)); padding: 0; border: 1px solid var(--line); border-radius: 14px;
@@ -307,15 +300,17 @@
     .password-visibility:hover { color: var(--accent); }
     .password-visibility:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
     .password-visibility svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .type-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .type-toggle label { margin: 0; }
-    .type-toggle input {
+    .type-toggle, .priority-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .type-toggle label, .priority-toggle label { margin: 0; }
+    .type-toggle input, .priority-toggle input {
       position: absolute; width: 1px; height: 1px; min-height: 0; padding: 0; margin: 0;
       overflow: hidden; clip-path: inset(50%); opacity: 0; pointer-events: none;
     }
-    .type-toggle span { display: flex; min-height: 48px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+    .type-toggle span, .priority-toggle span { display: flex; min-height: 48px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
     .type-toggle input:checked + span { border-color: var(--accent); background: var(--accent); color: var(--bg); }
-    .date-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .priority-toggle input[value="normal"]:checked + span { border-color: var(--priority-normal); background: var(--priority-normal); color: #fff; }
+    .priority-toggle input[value="urgent"]:checked + span { border-color: var(--priority-urgent); background: var(--priority-urgent); color: #fff; }
+    .date-range, .time-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .form-error { min-height: 20px; margin: 12px 0 0; color: var(--danger); font-size: 12px; }
     .form-hint { color: var(--muted); font-size: 12px; line-height: 1.7; }
     .storage-status { color: var(--danger); font-size: 14px; line-height: 1.6; padding: 12px 0; }
@@ -349,7 +344,7 @@
       .day { min-height: 78px; }
       .progress { text-align: left; }
       .task-actions { opacity: 1; }
-      .date-range { grid-template-columns: 1fr; }
+      .date-range, .time-range { grid-template-columns: 1fr; }
       .task-row { gap: 8px; }
       .task-actions { flex-direction: column; gap: 0; }
       .migration-banner { grid-template-columns: 1fr; }
@@ -362,7 +357,7 @@
     }
   </style>
 </head>
-<body data-theme="dark">
+<body>
   <section class="auth-shell" id="authGate" aria-labelledby="authTitle">
     <div class="auth-grid">
       <div>
@@ -406,9 +401,11 @@
       </form>
       <form class="auth-panel" id="registerForm" hidden novalidate>
         <h2>A FRESH START</h2>
-        <p class="auth-panel-intro">名字你来写，账号我们来分配。</p>
+        <p class="auth-panel-intro">名字和账号都由你来写，选一个真正记得住的。</p>
         <div class="field"><label for="registerName">怎么称呼你 / YOUR NAME</label><input id="registerName" autocomplete="nickname" minlength="2" maxlength="32" required></div>
         <div class="field"><label for="registerRelation">你和 lntano 的关系 / CONNECTION</label><input id="registerRelation" placeholder="比如：同学、朋友、同事" maxlength="80" required></div>
+        <div class="field"><label for="registerUsername">设置账号 / USERNAME</label><input id="registerUsername" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" minlength="5" maxlength="24" placeholder="例如：xiaoming_26" required></div>
+        <p class="auth-panel-intro">账号为 5–24 位：小写字母开头，只能使用小写字母、数字和下划线。</p>
         <div class="field"><label for="registerPassword">设置密码 / PASSWORD</label><div class="password-input-wrap"><input id="registerPassword" type="password" autocomplete="new-password" minlength="8" maxlength="32" required><button class="password-visibility" type="button" data-password-target="registerPassword" aria-label="显示密码" aria-controls="registerPassword" aria-pressed="false"></button></div></div>
         <div class="field"><label for="registerConfirm">再输一次 / CONFIRM PASSWORD</label><div class="password-input-wrap"><input id="registerConfirm" type="password" autocomplete="new-password" minlength="8" maxlength="32" required><button class="password-visibility" type="button" data-password-target="registerConfirm" aria-label="显示密码" aria-controls="registerConfirm" aria-pressed="false"></button></div></div>
         <p class="auth-panel-intro">8–32 位，以字母或数字开头；大写、小写、数字、符号中至少三种。不需要短信验证码。</p>
@@ -416,11 +413,11 @@
         <p class="auth-message" id="registerMessage" role="alert"></p>
         <button class="button primary auth-submit" id="registerButton" type="submit">创建我的账号 / CREATE ACCOUNT</button>
         <button class="button auth-submit" id="backToLoginButton" type="button">已有账号 / BACK TO SIGN IN</button>
-        <p class="auth-note">名字和关系仅供 lntano 管理注册使用，不会展示给其他用户。请勿填写身份证、住址等敏感信息。注册成功后请保存系统分配的账号。</p>
+        <p class="auth-note">名字和关系仅供 lntano 管理注册使用，不会展示给其他用户。请勿填写身份证、住址等敏感信息。</p>
       </form>
       <section class="auth-panel" id="registerSuccess" hidden aria-labelledby="registerSuccessTitle">
         <h2 id="registerSuccessTitle">YOU'RE IN.</h2>
-        <p class="auth-panel-intro">账号已创建。保存下面的账号，配上你刚设置的密码，就能登录。</p>
+        <p class="auth-panel-intro">账号已创建。下面就是你选择的账号，配上刚设置的密码即可登录。</p>
         <label for="generatedAccount">你的账号 / YOUR ACCOUNT</label>
         <input class="registration-account" id="generatedAccount" readonly autocomplete="off">
         <button class="button primary auth-submit" id="copyAccountButton" type="button">复制账号 / COPY ACCOUNT</button>
@@ -437,7 +434,6 @@
         <span class="save-mode" id="saveMode" title="当前事项保存在登录账号的云端空间">CLOUD / 云端保存</span>
         <span class="user-identity" id="userIdentity"></span>
         <button class="button" id="importButton" type="button" hidden>导入本机事项</button>
-        <button class="button" id="themeButton" type="button">Warm Paper</button>
         <button class="button" id="todayButton" type="button">回到今天</button>
         <button class="button primary" id="addButton" type="button">＋ 新建事项</button>
         <button class="button" id="logoutButton" type="button">退出</button>
@@ -488,10 +484,17 @@
         <input id="taskTitle" maxlength="160" autocomplete="off" placeholder="例如：完成作品集首页" aria-describedby="formError" required>
       </div>
       <div class="field">
+        <label>优先级 / PRIORITY</label>
+        <div class="priority-toggle">
+          <label><input type="radio" name="taskPriority" value="normal" checked><span>普通 / NORMAL</span></label>
+          <label><input type="radio" name="taskPriority" value="urgent"><span>紧急 / URGENT</span></label>
+        </div>
+      </div>
+      <div class="field">
         <label>出现方式 / SCHEDULE</label>
         <div class="type-toggle">
           <label><input type="radio" name="taskType" value="single" checked><span>单日事项</span></label>
-          <label><input type="radio" name="taskType" value="range"><span>时间段共同任务</span></label>
+          <label><input type="radio" name="taskType" value="range"><span>连续多日任务</span></label>
         </div>
       </div>
       <div class="field" id="singleDateField">
@@ -503,6 +506,14 @@
         <div class="field"><label for="endDate">结束 / END</label><input id="endDate" type="date" min="0001-01-01" max="9999-12-31"></div>
       </div>
       <p class="form-hint" id="rangeHint" hidden>起止日期当天也包含在内，每天分别打勾。编辑内容或日期会修改整条共同任务。</p>
+      <div class="field">
+        <label>每日完成时间 / DAILY TIME（可选）</label>
+        <div class="time-range">
+          <div><label for="taskStartTime">开始 / FROM</label><input id="taskStartTime" type="time" step="300"></div>
+          <div><label for="taskEndTime">结束 / TO</label><input id="taskEndTime" type="time" step="300"></div>
+        </div>
+      </div>
+      <p class="form-hint">不需要限定几点完成时，两项都留空；填写时必须同时选择开始和结束时间。</p>
       <p class="form-error" id="formError" role="alert"></p>
       <div class="form-actions">
         <button class="button" id="cancelButton" type="button">取消</button>
@@ -526,11 +537,10 @@
     const auth = cloudApp?.auth || null;
     const db = typeof cloudApp?.rdb === "function" ? cloudApp.rdb() : null;
 
-    // STORAGE / 旧键只用于主题和一次性本机数据迁移，新事项写入 CloudBase PG。
+    // STORAGE / 旧键只用于一次性本机数据迁移，新事项写入 CloudBase PG。
     const STORAGE = {
       tasks: "daily-todo.tasks.v1",
       completions: "daily-todo.dailyCompletions.v1",
-      theme: "daily-todo.theme.v1",
       migration: "daily-todo.cloudMigration.v1"
     };
     let storageMessage = "";
@@ -577,9 +587,17 @@
     function loadTasks() {
       const records = readJSON(STORAGE.tasks, []);
       const ids = new Set();
-      return records.filter(task => {
+      return records.map(task => ({
+        ...task,
+        priority: task?.priority === "urgent" ? "urgent" : "normal",
+        startTime: typeof task?.startTime === "string" && task.startTime ? task.startTime : null,
+        endTime: typeof task?.endTime === "string" && task.endTime ? task.endTime : null
+      })).filter(task => {
+        const timeValid = (!task.startTime && !task.endTime)
+          || (/^([01]\d|2[0-3]):[0-5]\d$/.test(task.startTime || "") && /^([01]\d|2[0-3]):[0-5]\d$/.test(task.endTime || "") && task.startTime < task.endTime);
         const valid = task && typeof task.id === "string" && /^[A-Za-z0-9_-]+$/.test(task.id) && !ids.has(task.id)
           && typeof task.title === "string" && task.title.trim().length > 0 && task.title.length <= 160
+          && ["normal", "urgent"].includes(task.priority) && timeValid
           && (task.type === "single" ? validDate(task.date)
             : task.type === "range" && validDate(task.startDate) && validDate(task.endDate) && task.startDate <= task.endDate);
         if (valid) ids.add(task.id);
@@ -641,6 +659,9 @@
         task_date: task.type === "single" ? task.date : null,
         start_date: task.type === "range" ? task.startDate : null,
         end_date: task.type === "range" ? task.endDate : null,
+        start_time: task.startTime || null,
+        end_time: task.endTime || null,
+        priority: task.priority,
         created_at: task.createdAt
       };
     }
@@ -656,6 +677,9 @@
         id: String(row.id),
         title: String(row.title),
         type: row.type,
+        priority: row.priority === "urgent" ? "urgent" : "normal",
+        startTime: row.start_time ? String(row.start_time).slice(0, 5) : null,
+        endTime: row.end_time ? String(row.end_time).slice(0, 5) : null,
         createdAt: row.created_at || new Date().toISOString()
       };
       if (row.type === "single") task.date = String(row.task_date).slice(0, 10);
@@ -779,7 +803,11 @@
       return task.type === "single" ? task.date === date : task.startDate <= date && task.endDate >= date;
     }
     function tasksFor(date) {
-      return state.tasks.filter(task => appearsOn(task, date));
+      return state.tasks.filter(task => appearsOn(task, date)).sort((a, b) => {
+        if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
+        if (a.startTime !== b.startTime) return (a.startTime || "99:99").localeCompare(b.startTime || "99:99");
+        return String(a.createdAt).localeCompare(String(b.createdAt));
+      });
     }
     function completionKey(task, date) { return task.type === "range" ? `${task.id}:${date}` : task.id; }
     function isDone(task, date) { return Boolean(state.completions[completionKey(task, date)]); }
@@ -825,9 +853,9 @@
         el("taskList").innerHTML = `<div class="empty"><strong>这一天还很轻。</strong><span>Nothing planned yet. 新建一个事项，给时间一个清晰的去处。</span></div>`;
         return;
       }
-      el("taskList").innerHTML = items.map(task => `<article class="task-row ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
+      el("taskList").innerHTML = items.map(task => `<article class="task-row priority-${task.priority} ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
         <button class="check" data-action="toggle" aria-pressed="${isDone(task, state.selectedDate)}"></button>
-        <div class="task-content"><p class="task-title"></p><div class="task-meta"><span class="task-type">${task.type === "range" ? "共同任务" : "单日事项"}</span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</div></div>
+        <div class="task-content"><p class="task-title"></p><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</span></div></div>
         <div class="task-actions"><button class="task-action" data-action="edit" aria-label="编辑">编辑</button><button class="task-action delete" data-action="delete" aria-label="删除">删除</button></div>
       </article>`).join("");
       document.querySelectorAll(".task-row").forEach((row, index) => {
@@ -860,6 +888,9 @@
       el("taskId").value = task?.id || "";
       el("dialogTitle").textContent = task ? "编辑事项" : "新建事项";
       el("taskTitle").value = task?.title || "";
+      document.querySelector(`input[name="taskPriority"][value="${task?.priority === "urgent" ? "urgent" : "normal"}"]`).checked = true;
+      el("taskStartTime").value = task?.startTime || "";
+      el("taskEndTime").value = task?.endTime || "";
       const type = task?.type || "single";
       document.querySelector(`input[name="taskType"][value="${type}"]`).checked = true;
       el("singleDate").value = task?.date || state.selectedDate;
@@ -881,8 +912,14 @@
       if (state.busy) return;
       const title = el("taskTitle").value.trim();
       const type = document.querySelector('input[name="taskType"]:checked').value;
+      const priority = document.querySelector('input[name="taskPriority"]:checked').value;
+      const startTime = el("taskStartTime").value;
+      const endTime = el("taskEndTime").value;
       if (!title) return el("formError").textContent = "请填写事项内容。";
       if (title.length > 160) return el("formError").textContent = "事项内容最多 160 个字符。";
+      if (!['normal', 'urgent'].includes(priority)) return el("formError").textContent = "请选择任务优先级。";
+      if (Boolean(startTime) !== Boolean(endTime)) return el("formError").textContent = "开始和结束时间需要同时填写，或同时留空。";
+      if (startTime && startTime >= endTime) return el("formError").textContent = "结束时间必须晚于开始时间。";
       if (type === "single" && !validDate(el("singleDate").value)) return el("formError").textContent = "请选择有效的单日日期。";
       if (type === "range" && (!validDate(el("startDate").value) || !validDate(el("endDate").value))) {
         return el("formError").textContent = "请填写有效的开始和结束日期。";
@@ -894,7 +931,8 @@
       const existing = state.tasks.find(task => task.id === existingId);
       const next = {
         id: existingId || (globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
-        title, type, createdAt: existing?.createdAt || new Date().toISOString()
+        title, type, priority, startTime: startTime || null, endTime: endTime || null,
+        createdAt: existing?.createdAt || new Date().toISOString()
       };
       if (type === "single") next.date = el("singleDate").value;
       else { next.startDate = el("startDate").value; next.endDate = el("endDate").value; }
@@ -1102,16 +1140,6 @@
     }
     el("prevWeek").addEventListener("click", () => moveWeek(-7));
     el("nextWeek").addEventListener("click", () => moveWeek(7));
-    el("themeButton").addEventListener("click", () => {
-      const next = document.body.dataset.theme === "dark" ? "paper" : "dark";
-      document.body.dataset.theme = next;
-      if (!writeValues([[STORAGE.theme, next]])) showStorageStatus("主题已临时切换，但无法保存此选择。刷新后可能恢复原主题。");
-      el("themeButton").textContent = next === "dark" ? "Warm Paper" : "Dark Editorial";
-    });
-
-    const savedTheme = readValue(STORAGE.theme) === "paper" ? "paper" : "dark";
-    document.body.dataset.theme = savedTheme;
-    el("themeButton").textContent = savedTheme === "dark" ? "Warm Paper" : "Dark Editorial";
     setPasswordVisibility(false);
     void boot();
   </script>

@@ -6,19 +6,21 @@ const messages = {
   DAILY_LIMIT: '今天的注册名额已用完，请明天再来，或联系 lntano。',
   TOTAL_LIMIT: '当前注册名额已满，请联系 lntano。',
   BUSY: '上一次请求还在处理中，请保留此页面，90 秒后再试。',
-  CHANGED: '这次填写与上次提交不一致。请恢复原来的称呼、关系和密码后重试，或联系 lntano。',
-  INVALID: '请检查称呼、关系和密码格式。',
+  CHANGED: '这次填写与上次提交不一致。请恢复原来的称呼、关系、账号和密码后重试，或联系 lntano。',
+  USERNAME_TAKEN: '这个账号已经被使用，请换一个再试。',
+  INVALID: '请检查称呼、关系、账号和密码格式。',
   UNAVAILABLE: '暂时无法确认注册结果，请保留此页面，90 秒后用原来的信息重试。'
 };
 function validate(input) {
   if (!input || typeof input !== 'object' || Array.isArray(input)) return null;
-  if (typeof input.nickname !== 'string' || typeof input.relation !== 'string' || typeof input.password !== 'string') return null;
-  const nickname = input.nickname.trim(), relation = input.relation.trim(), password = input.password;
+  if (typeof input.nickname !== 'string' || typeof input.relation !== 'string' || typeof input.username !== 'string' || typeof input.password !== 'string') return null;
+  const nickname = input.nickname.trim(), relation = input.relation.trim(), username = input.username.trim().toLowerCase(), password = input.password;
   if (nickname.length < 2 || nickname.length > 32 || relation.length < 1 || relation.length > 80 || /[\x00-\x1f\x7f]/.test(nickname + relation)) return null;
+  if (!/^[a-z][a-z0-9_]{4,23}$/.test(username) || username !== input.username) return null;
   if (!/^[a-f0-9]{64}$/.test(input.requestToken || '') || input.website) return null;
   if (!/^[A-Za-z0-9][A-Za-z0-9()!@#$%^&*|?><_-]{7,31}$/.test(password)) return null;
   if ([/[a-z]/, /[A-Z]/, /[0-9]/, /[()!@#$%^&*|?><_-]/].filter(p => p.test(password)).length < 3) return null;
-  return { nickname, relation, password, requestToken: input.requestToken };
+  return { nickname, relation, username, password, requestToken: input.requestToken };
 }
 async function rpc(name, args) {
   const response = await fetch(`https://${process.env.APP_ENV_ID}.api.tcloudbasegateway.com/v1/rdb/rest/rpc/${name}`, {
@@ -35,8 +37,8 @@ async function register(input, deps) {
   if (!data) return failure('INVALID');
   const requestHash = createHash('sha256').update(data.requestToken).digest('hex');
   // Keyed binding detects a retry with changed details, without saving a password.
-  const payloadHash = createHmac('sha256', deps.bindingKey).update(JSON.stringify([data.nickname, data.relation, data.password])).digest('hex');
-  const reservation = await deps.rpc('reserve_friend_registration', { p_request_hash: requestHash, p_payload_hash: payloadHash, p_nickname: data.nickname, p_relation: data.relation });
+  const payloadHash = createHmac('sha256', deps.bindingKey).update(JSON.stringify([data.nickname, data.relation, data.username, data.password])).digest('hex');
+  const reservation = await deps.rpc('reserve_friend_registration_v2', { p_request_hash: requestHash, p_payload_hash: payloadHash, p_username: data.username, p_nickname: data.nickname, p_relation: data.relation });
   if (reservation.code === 'DONE') return { ok: true, username: reservation.username };
   if (reservation.code !== 'RESERVED') return failure(reservation.code);
   // The username AND UID are fixed by the reservation. Retrying can never reset a password.
@@ -48,6 +50,10 @@ async function register(input, deps) {
     if (error.code !== 'FailedOperation.DuplicatedData') throw error;
     // A prior timed-out call may have succeeded. Only accept our exact reserved identity.
     uid = await deps.findUser(reservation.username, reservation.uid);
+    if (uid !== reservation.uid) {
+      await deps.rpc('cancel_friend_registration', { p_request_hash: requestHash, p_user_id: reservation.uid });
+      return failure('USERNAME_TAKEN');
+    }
   }
   if (uid !== reservation.uid) throw Object.assign(new Error('IDENTITY_MISMATCH'), { code: 'IDENTITY_MISMATCH' });
   if (!await deps.rpc('complete_friend_registration', { p_request_hash: requestHash, p_user_id: uid })) throw new Error('COMPLETION_FAILED');

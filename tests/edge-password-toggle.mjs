@@ -172,6 +172,8 @@ try {
       headline: document.getElementById("authTitle").innerText.replace(/\\s+/g, " ").trim(),
       credit: document.querySelector(".auth-credit")?.textContent.trim(),
       hasOldCopy: document.body.innerText.includes("One account, every device"),
+      hasThemeButton: Boolean(document.getElementById("themeButton")),
+      bodyBackground: getComputedStyle(document.body).backgroundColor,
     };
   })()`);
 
@@ -183,6 +185,32 @@ try {
   assertState(initial.headline === "MAKE TODAY COUNT 让今天算数", `登录标题不正确：${initial.headline}`);
   assertState(initial.credit === "made by lntano", "作者署名没有正确显示。");
   assertState(!initial.hasOldCopy, "登录页仍显示已删除的说明文字。");
+  assertState(!initial.hasThemeButton && initial.bodyBackground === "rgb(243, 235, 221)", "页面没有固定为暖色纸张主题。");
+
+  const taskControls = await cdp.evaluate(`(() => {
+    const dialog = document.getElementById('taskDialog');
+    dialog.showModal();
+    const normal = document.querySelector('input[name="taskPriority"][value="normal"]');
+    const urgent = document.querySelector('input[name="taskPriority"][value="urgent"]');
+    const normalColor = getComputedStyle(normal.nextElementSibling).backgroundColor;
+    urgent.click();
+    const urgentColor = getComputedStyle(urgent.nextElementSibling).backgroundColor;
+    document.getElementById('taskTitle').value = '时间校验';
+    document.getElementById('taskStartTime').value = '10:00';
+    document.getElementById('taskEndTime').value = '09:00';
+    document.getElementById('taskForm').requestSubmit();
+    const result = {
+      normalColor,
+      urgentColor,
+      timeInputs: [document.getElementById('taskStartTime').type, document.getElementById('taskEndTime').type],
+      error: document.getElementById('formError').textContent,
+    };
+    dialog.close();
+    return result;
+  })()`);
+  assertState(taskControls.normalColor === "rgb(47, 111, 159)", "普通优先级没有使用蓝色。");
+  assertState(taskControls.urgentColor === "rgb(184, 58, 47)", "紧急优先级没有使用红色。");
+  assertState(taskControls.timeInputs.every(type => type === "time") && taskControls.error.includes("晚于"), "每日时间段控件或校验没有生效。");
 
   for (const width of [1440, 320]) {
     await cdp.send("Emulation.setDeviceMetricsOverride", {

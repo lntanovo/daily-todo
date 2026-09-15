@@ -28,7 +28,8 @@ export async function runRegistrationChecks(cdp) {
     await evaluate(`document.querySelector('[data-password-target="${id}"]').click()`);
   }
   const password = 'Qa9!' + randomBytes(12).toString('hex');
-  await evaluate(`(() => { document.getElementById('registerName').value='界面验收测试';document.getElementById('registerRelation').value='lntano 的网站自动化测试'; document.getElementById('registerPassword').value=${JSON.stringify(password)};document.getElementById('registerConfirm').value='wrong';document.getElementById('registerForm').requestSubmit(); })()`);
+  const chosenUsername = 'test_' + randomBytes(6).toString('hex');
+  await evaluate(`(() => { document.getElementById('registerName').value='界面验收测试';document.getElementById('registerRelation').value='lntano 的网站自动化测试';document.getElementById('registerUsername').value=${JSON.stringify(chosenUsername)};document.getElementById('registerPassword').value=${JSON.stringify(password)};document.getElementById('registerConfirm').value='wrong';document.getElementById('registerForm').requestSubmit(); })()`);
   assert.ok(await evaluate(`document.getElementById('registerMessage').textContent.includes('不一样')`));
   if (process.env.TODO_REGISTER_E2E !== '1') {
     await evaluate(`document.getElementById('backToLoginButton').click()`);
@@ -39,7 +40,7 @@ export async function runRegistrationChecks(cdp) {
   await evaluate(`(() => { document.getElementById('registerConfirm').value=${JSON.stringify(password)};document.getElementById('registerForm').requestSubmit();document.getElementById('registerForm').requestSubmit(); })()`);
   await waitFor(`!document.getElementById('registerSuccess').hidden`, 'Real registration failed');
   const username = await evaluate(`document.getElementById('generatedAccount').value`);
-  assert.match(username, /^ln_[a-f0-9]{16}$/);
+  assert.equal(username, chosenUsername);
   assert.equal(await evaluate(`document.getElementById('registerPassword').value`), '');
   assert.ok(!await evaluate(`JSON.stringify({...localStorage,...sessionStorage}).includes(${JSON.stringify(password)})`), 'Password persisted in browser storage');
   await evaluate(`document.getElementById('useAccountButton').click()`);
@@ -53,8 +54,9 @@ export async function runRegistrationChecks(cdp) {
   const titleField = fields.find(i => i.type === 'text');
   assert.ok(titleField, 'Task title field missing');
   const taskTitle = '注册验收-' + randomBytes(4).toString('hex');
-  await evaluate(`(() => {document.getElementById(${JSON.stringify(titleField.id)}).value=${JSON.stringify(taskTitle)};document.querySelector('#taskDialog form').requestSubmit();})()`);
+  await evaluate(`(() => {document.getElementById(${JSON.stringify(titleField.id)}).value=${JSON.stringify(taskTitle)};document.querySelector('input[name="taskPriority"][value="urgent"]').checked=true;document.getElementById('taskStartTime').value='09:00';document.getElementById('taskEndTime').value='10:30';document.querySelector('#taskDialog form').requestSubmit();})()`);
   await waitFor(`document.getElementById('taskList').textContent.includes(${JSON.stringify(taskTitle)})`, 'Task did not save');
+  assert.ok(await evaluate(`document.getElementById('taskList').textContent.includes('紧急 / URGENT') && document.getElementById('taskList').textContent.includes('09:00—10:30')`), 'Task priority or time window missing');
   await cdp.send('Page.reload');
   await waitFor(`document.getElementById('taskList')?.textContent.includes(${JSON.stringify(taskTitle)})`, 'Task lost after reload');
   await evaluate(`document.getElementById('logoutButton').click()`);

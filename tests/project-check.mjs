@@ -7,10 +7,11 @@ const required = [
   ["周导航", /id="days"/],
   ["任务清单", /id="taskList"/],
   ["新增按钮", /id="addButton"/],
-  ["主题按钮", /id="themeButton"/],
+  ["暖色单主题", /Warm Paper only/],
   ["登录表单", /id="loginForm"/],
   ["同尺寸注册入口", /id="openRegisterButton"[^>]*>注册 \/ SIGN UP/],
   ["注册表单", /id="registerForm"/],
+  ["自定义注册账号", /id="registerUsername"/],
   ["注册成功账号", /id="generatedAccount"/],
   ["登录页品牌标题", /MAKE TODAY[\s\S]*COUNT[\s\S]*让今天算数/],
   ["作者署名", /made by lntano/],
@@ -22,6 +23,8 @@ const required = [
   ["CloudBase PostgreSQL", /cloudApp\.rdb\(\)/],
   ["云端任务表", /todo_tasks/],
   ["云端完成记录表", /todo_daily_completions/],
+  ["任务优先级", /name="taskPriority"[\s\S]*value="urgent"/],
+  ["任务每日时间段", /id="taskStartTime"[\s\S]*id="taskEndTime"/],
   ["本机数据迁移", /id="migrateButton"/],
   ["本地任务存储键", /daily-todo\.tasks\.v1/],
   ["本地完成记录键", /daily-todo\.dailyCompletions\.v1/],
@@ -43,6 +46,11 @@ if (/<script[^>]+src=["']http:/i.test(html)) {
 
 if (/getLoginState\(|signInAnonymously\(|app\.database\(/.test(html)) {
   console.error("项目检查失败：发现旧版登录、匿名降级或 NoSQL API。");
+  process.exit(1);
+}
+
+if (/data-theme=|id="themeButton"|Dark Editorial/.test(html)) {
+  console.error("项目检查失败：冷色主题或主题切换入口仍然存在。");
   process.exit(1);
 }
 
