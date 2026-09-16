@@ -1,6 +1,6 @@
 {
   "name": "daily-todo-editorial",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
   "description": "Cloud-synced daily todo board with CloudBase username login and PostgreSQL storage.",
   "scripts": {

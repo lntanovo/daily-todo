@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Companion interaction fixture</title>
+    <link rel="stylesheet" href="/src/companion.css">
+    <style>
+      :root {
+        --bg: #f3ebdd;
+        --ink: #24211d;
+        --accent: #c65432;
+        --body: Georgia, "Microsoft YaHei", serif;
+      }
+      body { min-height: 100vh; margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); }
+      main { padding: 48px; }
+      #motionButton { position: fixed; left: 24px; top: 24px; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>宠物互动测试</h1>
+      <p>宠物图标已放大 1.5 倍；点击会得到回应，按住后可以拖到屏幕中的其他位置。</p>
+      <button id="motionButton" type="button" aria-pressed="true">动效 / MOTION ON</button>
+    </main>
+    <script type="module">
+      import { setupCompanion } from "/src/companion.js";
+      const companion = setupCompanion({ motionButton: document.getElementById("motionButton") });
+      companion.setActive(true);
+    </script>
+  </body>
+</html>

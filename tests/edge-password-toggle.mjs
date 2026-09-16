@@ -174,6 +174,9 @@ try {
       hasOldCopy: document.body.innerText.includes("One account, every device"),
       hasThemeButton: Boolean(document.getElementById("themeButton")),
       bodyBackground: getComputedStyle(document.body).backgroundColor,
+      hasMotionButton: Boolean(document.getElementById("motionButton")),
+      companionExists: Boolean(document.querySelector(".companion-layer .companion-sprite")),
+      companionHiddenAtLogin: document.querySelector(".companion-layer")?.hidden,
     };
   })()`);
 
@@ -186,6 +189,17 @@ try {
   assertState(initial.credit === "made by lntano", "作者署名没有正确显示。");
   assertState(!initial.hasOldCopy, "登录页仍显示已删除的说明文字。");
   assertState(!initial.hasThemeButton && initial.bodyBackground === "rgb(243, 235, 221)", "页面没有固定为暖色纸张主题。");
+  assertState(initial.hasMotionButton && initial.companionExists && initial.companionHiddenAtLogin, "宠物动效入口没有加载，或登录页错误显示了宠物。");
+
+  const motionPreference = await cdp.evaluate(`(() => {
+    const button = document.getElementById('motionButton');
+    button.click();
+    const off = { pressed: button.getAttribute('aria-pressed'), stored: localStorage.getItem('daily-todo.motion.v1'), mode: document.documentElement.dataset.motion };
+    button.click();
+    return { off, on: { pressed: button.getAttribute('aria-pressed'), stored: localStorage.getItem('daily-todo.motion.v1'), mode: document.documentElement.dataset.motion } };
+  })()`);
+  assertState(motionPreference.off.pressed === "false" && motionPreference.off.stored === "off" && motionPreference.off.mode === "off", "关闭动效没有正确保存。")
+  assertState(motionPreference.on.pressed === "true" && motionPreference.on.stored === "on" && motionPreference.on.mode === "on", "重新开启动效没有正确保存。")
 
   const taskControls = await cdp.evaluate(`(() => {
     const dialog = document.getElementById('taskDialog');

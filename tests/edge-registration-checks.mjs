@@ -48,6 +48,20 @@ export async function runRegistrationChecks(cdp) {
   await evaluate(`(() => {document.getElementById('loginPassword').value=${JSON.stringify(password)};document.getElementById('loginForm').requestSubmit();})()`);
   await waitFor(`!document.getElementById('appRoot').hidden && !document.getElementById('addButton').disabled`, 'Generated account cannot log in');
   assert.equal(await evaluate(`document.getElementById('storageStatus').textContent`), '');
+  await waitFor(`!document.querySelector('.companion-layer').hidden`, 'Companion did not appear after login');
+  assert.ok(await evaluate(`(() => { const image = document.querySelector('.companion-sprite').style.backgroundImage; return image && image !== 'none' && (image.includes('oneko') || image.includes('data:image')); })()`), 'Companion sprite is missing');
+  await waitFor(`document.querySelectorAll('.companion-petal[data-kind="ambient"]').length > 0`, 'Ambient petals did not start');
+  const petBefore = await evaluate(`(() => { const pet = document.querySelector('.companion-pet'); const rect = pet.getBoundingClientRect(); return { left: rect.left, top: rect.top, width: rect.width, height: rect.height, centerX: rect.left + rect.width / 2, centerY: rect.top + rect.height / 2, tag: pet.tagName, label: pet.getAttribute('aria-label') }; })()`);
+  assert.ok(petBefore.width === 84 && petBefore.height === 84 && petBefore.tag === 'BUTTON' && petBefore.label, 'Companion should be 1.5x larger and accessible');
+  const dragTarget = { x: petBefore.centerX - 140, y: petBefore.centerY - 110 };
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mousePressed', x: petBefore.centerX, y: petBefore.centerY, button: 'left', buttons: 1, clickCount: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: dragTarget.x, y: dragTarget.y, button: 'left', buttons: 1 });
+  await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: dragTarget.x, y: dragTarget.y, button: 'left', buttons: 0, clickCount: 1 });
+  const petAfter = await evaluate(`(() => { const rect = document.querySelector('.companion-pet').getBoundingClientRect(); return { left: rect.left, top: rect.top, stored: localStorage.getItem('daily-todo.pet-position.v1') }; })()`);
+  assert.ok(petAfter.left < petBefore.left - 100 && petAfter.top < petBefore.top - 70 && petAfter.stored, 'Companion drag or position persistence failed');
+  await delay(400);
+  await evaluate(`document.querySelector('.companion-pet').click()`);
+  await waitFor(`!document.querySelector('.companion-message').hidden && document.querySelector('.companion-message').textContent.length > 0`, 'Clicking companion did not trigger a reply');
   // A harmless test task uses the existing production editor and database path.
   await evaluate(`document.getElementById('addButton').click()`);
   const fields = await evaluate(`Array.from(document.querySelectorAll('#taskDialog input')).map(i=>({id:i.id,type:i.type}))`);
@@ -57,9 +71,15 @@ export async function runRegistrationChecks(cdp) {
   await evaluate(`(() => {document.getElementById(${JSON.stringify(titleField.id)}).value=${JSON.stringify(taskTitle)};document.querySelector('input[name="taskPriority"][value="urgent"]').checked=true;document.getElementById('taskStartTime').value='09:00';document.getElementById('taskEndTime').value='10:30';document.querySelector('#taskDialog form').requestSubmit();})()`);
   await waitFor(`document.getElementById('taskList').textContent.includes(${JSON.stringify(taskTitle)})`, 'Task did not save');
   assert.ok(await evaluate(`document.getElementById('taskList').textContent.includes('紧急 / URGENT') && document.getElementById('taskList').textContent.includes('09:00—10:30')`), 'Task priority or time window missing');
+  await evaluate(`(() => { const row = Array.from(document.querySelectorAll('.task-row')).find(item => item.querySelector('.task-title').textContent === ${JSON.stringify(taskTitle)}); row.querySelector('.check').click(); })()`);
+  await waitFor(`!document.querySelector('.companion-message').hidden && document.querySelector('.companion-message').textContent.includes('漂亮收尾')`, 'Task completion did not trigger companion feedback');
+  assert.ok(await evaluate(`document.querySelectorAll('.companion-petal[data-kind="burst"]').length > 0`), 'Task completion did not trigger petal burst');
+  const motionState = await evaluate(`(() => { const button = document.getElementById('motionButton'); button.click(); const off = document.querySelector('.companion-layer').hidden && localStorage.getItem('daily-todo.motion.v1') === 'off'; button.click(); return { off, on: !document.querySelector('.companion-layer').hidden && localStorage.getItem('daily-todo.motion.v1') === 'on' }; })()`);
+  assert.deepEqual(motionState, { off: true, on: true }, 'Motion preference toggle failed');
   await cdp.send('Page.reload');
   await waitFor(`document.getElementById('taskList')?.textContent.includes(${JSON.stringify(taskTitle)})`, 'Task lost after reload');
+  assert.ok(await evaluate(`document.querySelector('.task-row.done')?.querySelector('.task-title').textContent === ${JSON.stringify(taskTitle)}`), 'Task completion state was lost after reload');
   await evaluate(`document.getElementById('logoutButton').click()`);
   await waitFor(`!document.getElementById('authGate').hidden`, 'Logout failed');
-  console.log(JSON.stringify({ registrationE2E: 'passed', username, taskTitle, checks: 'registration, duplicate click, password storage, login, cloud task save, reload, logout' }));
+  console.log(JSON.stringify({ registrationE2E: 'passed', username, taskTitle, checks: 'registration, login, cloud task save, companion, petals, motion preference, reload, logout' }));
 }

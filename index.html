@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Today / 今日待办</title>
-  <meta name="description" content="中英混排的每日待办工作台，支持周视图、单日事项与时间段共同任务。">
+  <meta name="description" content="带有陪伴宠物与花瓣动效的暖色每日待办工作台，支持周视图、时间段任务和云端保存。">
   <meta name="theme-color" content="#f3ebdd">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3ebdd'/%3E%3Cpath d='M17 34l10 10 21-25' fill='none' stroke='%23c65432' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
   <!--
     DESIGN SYSTEM / 草稿契约
     Warm Paper only: #F3EBDD / #24211D / #C65432，纸张色、墨色、印章红。
     优先级：普通 #2F6F9F（蓝）/ 紧急 #B83A2F（红）；只在任务状态中使用。
+    v1.2 动效：像素宠物位于页面底部，暖红花瓣悬浮且不拦截交互；完成任务时集中回应。
     字体：Georgia + Microsoft YaHei；间距：8px 基线；圆角：0/14/999px；无装饰性阴影。
     页面节奏：工具栏 → 周导航 → 大标题与进度 → 任务清单；不使用无意义卡片嵌套。
   -->
@@ -436,6 +437,7 @@
         <button class="button" id="importButton" type="button" hidden>导入本机事项</button>
         <button class="button" id="todayButton" type="button">回到今天</button>
         <button class="button primary" id="addButton" type="button">＋ 新建事项</button>
+        <button class="button" id="motionButton" type="button" aria-pressed="true">动效 / MOTION ON</button>
         <button class="button" id="logoutButton" type="button">退出</button>
       </div>
     </header>
@@ -525,6 +527,8 @@
   <script type="module">
     import cloudbase from "@cloudbase/js-sdk";
     import { setupRegistration } from "./src/registration.js";
+    import { setupCompanion } from "./src/companion.js";
+    import "./src/companion.css";
 
     const cloudConfig = {
       env: import.meta.env.VITE_CLOUDBASE_ENV_ID,
@@ -562,6 +566,7 @@
 
     const el = id => document.getElementById(id);
     const registration = setupRegistration({ cloudConfig, el });
+    const companion = setupCompanion({ motionButton: el("motionButton") });
     const taskDialog = el("taskDialog");
 
     function readValue(key) {
@@ -871,8 +876,15 @@
       if (action === "toggle") {
         const key = completionKey(task, state.selectedDate);
         const completions = { ...state.completions };
-        if (completions[key]) delete completions[key]; else completions[key] = true;
-        if (await save(state.tasks, completions)) render();
+        const completing = !completions[key];
+        if (!completing) delete completions[key]; else completions[key] = true;
+        if (await save(state.tasks, completions)) {
+          render();
+          if (completing) {
+            const visibleTasks = tasksFor(state.selectedDate);
+            companion.celebrate({ allDone: visibleTasks.length > 0 && visibleTasks.every(item => isDone(item, state.selectedDate)) });
+          }
+        }
       }
       if (action === "edit") openDialog(task);
       if (action === "delete" && confirm(task.type === "range" ? `删除整条共同任务“${task.title}”？该任务所有日期的完成记录也会删除。` : `删除“${task.title}”？`)) {
@@ -1014,6 +1026,7 @@
       state.completions = {};
       state.displayName = "";
       el("appRoot").hidden = true;
+      companion.setActive(false);
       el("authGate").hidden = false;
       el("authMessage").textContent = message;
       el("loginButton").disabled = false;
@@ -1038,6 +1051,7 @@
       if (displayName) state.displayName = displayName;
       el("authGate").hidden = true;
       el("appRoot").hidden = false;
+      companion.setActive(true);
       el("userIdentity").textContent = sessionLabel();
       el("saveMode").textContent = "CLOUD / 云端保存";
       setAppBusy(true);

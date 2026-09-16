@@ -25,6 +25,7 @@ const required = [
   ["云端完成记录表", /todo_daily_completions/],
   ["任务优先级", /name="taskPriority"[\s\S]*value="urgent"/],
   ["任务每日时间段", /id="taskStartTime"[\s\S]*id="taskEndTime"/],
+  ["动效开关", /id="motionButton"[^>]*aria-pressed="true"/],
   ["本机数据迁移", /id="migrateButton"/],
   ["本地任务存储键", /daily-todo\.tasks\.v1/],
   ["本地完成记录键", /daily-todo\.dailyCompletions\.v1/],
@@ -32,6 +33,9 @@ const required = [
 
 const registration = await readFile(new URL("../src/registration.js", import.meta.url), "utf8");
 const registerFunction = await readFile(new URL("../cloudfunctions/register-friend/index.js", import.meta.url), "utf8");
+const companion = await readFile(new URL("../src/companion.js", import.meta.url), "utf8");
+const companionCss = await readFile(new URL("../src/companion.css", import.meta.url), "utf8");
+const notices = await readFile(new URL("../THIRD_PARTY_NOTICES.md", import.meta.url), "utf8");
 
 const failures = required.filter(([, pattern]) => !pattern.test(html));
 if (failures.length) {
@@ -66,6 +70,26 @@ if (!/\/api\/register/.test(registration) || !/externalUser/.test(registerFuncti
 
 if (/CLOUDBASE_API_KEY|TENCENTCLOUD_SECRET/.test(registration)) {
   console.error("项目检查失败：浏览器注册代码中出现了服务端凭证字段。");
+  process.exit(1);
+}
+
+if (!/oneko\.gif/.test(companion) || !/celebrate/.test(companion) || !/MOTION_KEY/.test(companion)) {
+  console.error("项目检查失败：宠物、完成庆祝或动效偏好没有正确接入。");
+  process.exit(1);
+}
+
+if (!/addEventListener\("pointerdown", startDrag\)/.test(companion) || !/setPointerCapture/.test(companion) || !/PET_POSITION_KEY/.test(companion)) {
+  console.error("项目检查失败：宠物拖动或位置保存逻辑不完整。");
+  process.exit(1);
+}
+
+if (!/\.companion-pet\s*\{[^}]*width:\s*84px;[^}]*height:\s*84px;/s.test(companionCss) || !/scale\(2\.13\)/.test(companionCss) || !/touch-action:\s*none/.test(companionCss)) {
+  console.error("项目检查失败：宠物 1.5 倍尺寸或拖动样式缺失。");
+  process.exit(1);
+}
+
+if (!/adryd325\/oneko\.js/.test(notices) || !/jhammann\/sakura/.test(notices) || !/MIT License/.test(notices)) {
+  console.error("项目检查失败：开源来源或许可证说明不完整。");
   process.exit(1);
 }
 

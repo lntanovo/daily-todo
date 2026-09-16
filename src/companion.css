@@ -1,0 +1,160 @@
+.companion-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.companion-layer[hidden] { display: none !important; }
+
+.companion-pet {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  width: 84px;
+  height: 84px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  will-change: transform;
+}
+
+.companion-pet.is-dragging { cursor: grabbing; }
+
+.companion-sprite {
+  position: absolute;
+  left: 26px;
+  top: 26px;
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  transform: scale(2.13);
+  transform-origin: center;
+  filter: drop-shadow(2px 3px 0 rgb(91 63 42 / 18%));
+}
+
+.companion-pet.is-celebrating {
+  animation: companion-hop .68s cubic-bezier(.2, .8, .25, 1);
+}
+
+.companion-pet.is-interacting {
+  animation: companion-petted .72s cubic-bezier(.2, .8, .25, 1);
+}
+
+.companion-pet:hover .companion-sprite,
+.companion-pet:focus-visible .companion-sprite {
+  filter: drop-shadow(2px 3px 0 rgb(91 63 42 / 18%)) drop-shadow(0 0 7px rgb(198 84 50 / 34%));
+}
+
+.companion-pet:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.companion-message {
+  position: absolute;
+  width: max-content;
+  max-width: min(220px, calc(100vw - 32px));
+  padding: 8px 11px;
+  border: 1px solid var(--ink);
+  background: color-mix(in oklch, var(--bg) 92%, white);
+  color: var(--ink);
+  font: 700 12px/1.45 var(--body);
+  letter-spacing: .03em;
+  transform: translate(-50%, -100%) rotate(-1deg);
+  pointer-events: none;
+}
+
+.companion-message::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  background: inherit;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.companion-message.is-below {
+  transform: translateX(-50%) rotate(-1deg);
+}
+
+.companion-message.is-below::after {
+  top: -6px;
+  bottom: auto;
+  border: 0;
+  border-left: 1px solid var(--ink);
+  border-top: 1px solid var(--ink);
+}
+
+.companion-petals {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.companion-petal {
+  position: absolute;
+  display: block;
+  border-radius: 88% 10% 86% 12%;
+  background: var(--petal-color);
+  box-shadow: inset -1px -1px 0 rgb(110 45 30 / 16%);
+  opacity: .72;
+  will-change: transform, opacity;
+}
+
+.companion-petal.ambient {
+  animation: companion-fall var(--duration) linear forwards;
+}
+
+.companion-petal.burst {
+  opacity: .92;
+  animation: companion-burst var(--duration) cubic-bezier(.18, .72, .28, 1) forwards;
+}
+
+@keyframes companion-fall {
+  0% { transform: translate3d(0, -30px, 0) rotate(0); opacity: 0; }
+  9% { opacity: .72; }
+  48% { transform: translate3d(var(--sway), 48vh, 0) rotate(calc(var(--turn) * .48)); }
+  100% { transform: translate3d(var(--drift), calc(100vh + 48px), 0) rotate(var(--turn)); opacity: .12; }
+}
+
+@keyframes companion-burst {
+  0% { transform: translate3d(-50%, -50%, 0) scale(.5) rotate(0); opacity: 1; }
+  72% { opacity: .9; }
+  100% { transform: translate3d(var(--burst-x), var(--burst-y), 0) scale(1.08) rotate(var(--turn)); opacity: 0; }
+}
+
+@keyframes companion-hop {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  34% { transform: translateY(-22px) rotate(-7deg); }
+  62% { transform: translateY(-5px) rotate(5deg); }
+}
+
+@keyframes companion-petted {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  28% { transform: translateY(-8px) rotate(-8deg) scale(1.08); }
+  58% { transform: translateY(-3px) rotate(7deg) scale(1.04); }
+}
+
+@media (max-width: 720px), (pointer: coarse) {
+  .companion-pet { right: 8px; bottom: 8px; width: 72px; height: 72px; }
+  .companion-sprite { left: 20px; top: 20px; transform: scale(1.83); }
+  .companion-message { max-width: 170px; font-size: 11px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .companion-pet,
+  .companion-petal { animation-duration: 1ms !important; }
+}
