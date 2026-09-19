@@ -2,6 +2,24 @@
 
 This project includes or adapts small parts of the following open-source projects.
 
+## Source Han Serif / 思源宋体
+
+- Source: <https://github.com/adobe-fonts/source-han-serif>
+- Version: 2.003R variable CN subset
+- Used for: task titles
+- License: SIL Open Font License 1.1; the complete license is included in `assets/fonts/SourceHanSerif-LICENSE.txt`.
+
+## LXGW WenKai / 霞鹜文楷
+
+- Source: <https://github.com/lxgw/LxgwWenKai>
+- Version: 1.522
+- Used for: daily supplements
+- License: SIL Open Font License 1.1; the complete license is included in `assets/fonts/LXGWWenKai-OFL.txt`.
+
+The browser-optimized, unicode-range WOFF2 packaging is from
+<https://github.com/chawyehsu/lxgw-wenkai-webfont> version 1.7.0 under the MIT license.
+Its complete license is included in `assets/fonts/wenkai/LICENSE.txt`.
+
 ## oneko.js
 
 - Source: <https://github.com/adryd325/oneko.js>

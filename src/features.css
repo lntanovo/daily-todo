@@ -1,0 +1,57 @@
+@import '../assets/fonts/wenkai/lxgwwenkai-regular.css';
+/* Warm Paper #f3ebdd / ink #24211d / cinnabar #c65432.
+   Source Han Serif for task titles; LXGW WenKai for dated notes.
+   Existing layout, 8px spacing, 44px touch targets. User-supplied images only. */
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+}
+.task-title, .note-task-heading { font-family: 'Source Han Serif', 'Noto Serif CJK SC', serif; line-height: 1.55; }
+.daily-note, .note-input { font: 400 18px/1.65 'LXGW WenKai', 'KaiTi', serif; }
+.daily-note { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; color: #5b5449; }
+.note-trigger { display: block; min-height: 36px; padding: 6px 0; border: 0; background: transparent; color: var(--muted); font: 12px var(--body); cursor: pointer; text-align: left; }
+.note-trigger:hover { color: var(--accent); }
+.note-trigger:disabled { cursor: wait; opacity: .65; }
+.note-task-heading { margin: 20px 0 0; font-size: 23px; font-weight: 700; overflow-wrap: anywhere; }
+.note-input { width: 100%; padding: 16px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: #fffaf1; resize: vertical; min-height: 160px; max-height: 50vh; }
+.note-counter { text-align: right; color: var(--muted); font: 12px var(--body); padding-top: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.feature-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.feature-heading h2 { margin: 0; font: 700 25px/1.4 var(--body); }
+.feature-heading small { display: block; font: 11px/1.8 var(--body); letter-spacing: .14em; color: var(--accent); }
+.feature-heading .icon-button { flex-shrink: 0; }
+.calendar-dialog { width: min(430px, calc(100% - 24px)); }
+.calendar-navigation { display: flex; gap: 12px; align-items: flex-end; margin-top: 24px; }
+.calendar-navigation .icon-button { flex: 0 0 44px; }
+.calendar-selects { display: flex; flex: 1; gap: 8px; min-width: 0; }
+.calendar-selects label { flex: 1; min-width: 0; font-size: 11px; color: var(--muted); }
+.calendar-selects input, .calendar-selects select { width: 100%; height: 44px; padding: 6px; margin-top: 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); font: 16px var(--body); }
+.calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.calendar-weekdays span { text-align: center; font-size: 12px; color: var(--muted); padding: 12px 0; }
+.calendar-day { position: relative; min-width: 0; height: 46px; padding: 0; border: 1px solid transparent; border-radius: 7px; background: transparent; font-size: 16px; cursor: pointer; }
+.calendar-day:hover { background: var(--surface); }
+.calendar-day[aria-current='date'] { border-color: var(--accent); }
+.calendar-day[aria-pressed='true'] { background: var(--accent); color: #fffaf1; }
+.calendar-day.has-tasks::after { content: ''; position: absolute; left: calc(50% - 2px); bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+.calendar-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.calendar-footer span { color: var(--muted); font-size: 11px; }
+#calendarButton { display: grid; place-items: center; }
+#calendarButton svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.page-background { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: -2; }
+body.has-background { background: transparent; isolation: isolate; }
+body.has-background::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: rgb(243 235 221 / .78); }
+.background-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 24px; }
+.background-option { min-height: 84px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; font: 14px var(--body); overflow: hidden; }
+.background-option[aria-pressed='true'] { border: 2px solid var(--accent); }
+.background-option img { width: 100%; height: 90px; object-fit: cover; display: block; margin-bottom: 8px; border-radius: 3px; }
+textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@media(max-width:480px) {
+  .calendar-dialog .dialog-inner { padding: 16px; }
+  .calendar-navigation { gap: 6px; }
+  .week-head { gap: 12px; flex-wrap: wrap; }
+  .daily-note, .note-input { font-size: 17px; }
+  .note-trigger { min-height: 44px; }
+  .calendar-footer { gap: 6px; }
+}

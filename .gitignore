@@ -5,3 +5,7 @@ dist/
 .cloudbase/
 .cloudbaserc.local.json
 *.log
+background-originals/*
+!background-originals/README.md
+tests/artifacts/
+.font-sources/

@@ -1,0 +1,148 @@
+import assert from 'node:assert/strict';
+import { mkdir, readFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { setTimeout as delay } from 'node:timers/promises';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+
+// Uses an existing Playwright installation; never installs dependencies automatically.
+const runtime = process.env.PLAYWRIGHT_MODULE || 'C:/Users/lntano/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
+const { chromium } = await import(pathToFileURL(runtime));
+const projectDir=fileURLToPath(new URL('../',import.meta.url));
+const url=process.env.TODO_FEATURE_TEST_URL||'http://127.0.0.1:5193/tests/features-fixture.html';
+let server;
+try {const response=await fetch(url);if(!response.ok)throw new Error(String(response.status));}
+catch {
+  server=spawn(process.execPath,[fileURLToPath(new URL('../node_modules/vite/bin/vite.js',import.meta.url)),'--host','127.0.0.1','--port',new URL(url).port,'--strictPort'],{cwd:projectDir,stdio:'ignore'});
+  for(let attempt=0;attempt<60;attempt++){try{if((await fetch(url)).ok)break;}catch{}await delay(100);if(attempt===59)throw new Error('本地预览服务未能启动。');}
+}
+const browser = await chromium.launch({channel:'msedge',headless:true});
+const page = await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+const errors=[];
+page.on('pageerror',error=>errors.push(error.message));
+page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
+page.on('dialog',dialog=>dialog.accept());
+const row=page.locator('[data-id="fixture-range"]');
+const note=row.locator('.daily-note');
+const waitReady=()=>page.waitForFunction(()=>document.querySelector('#appRoot')?.getAttribute('aria-busy')==='false');
+const check=label=>console.log(`PASS ${label}`);
+async function chooseDate(year,month,day) {
+  await page.locator('#calendarButton').click();
+  await page.locator('#calendarYear').fill(String(year));
+  await page.locator('#calendarYear').press('Enter');
+  await page.locator('#calendarMonth').selectOption(String(month-1));
+  await page.locator(`[data-calendar-date="${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}"]`).click();
+  await page.waitForFunction(()=>!document.querySelector('.calendar-dialog').open);
+}
+try {
+  await page.goto(url);await waitReady();
+  await row.locator('.note-trigger').click();
+  const text='今天完成了第一步。\n<img src=x onerror=alert(1)> 这只是文字';
+  await page.locator('#noteContent').fill(text);
+  await page.locator('#noteForm [type=submit]').click();
+  await page.waitForFunction(()=>!document.querySelector('#noteDialog').open);
+  assert.equal(await note.textContent(),text);
+  assert.equal(await note.locator('img').count(),0);
+  check('supplement saved as plain text / XSS-safe');
+  const today=await page.evaluate(()=>{const d=new Date();return [d.getFullYear(),d.getMonth()+1,d.getDate()];});
+  const tomorrow=await page.evaluate(()=>{const d=new Date();d.setDate(d.getDate()+1);return [d.getFullYear(),d.getMonth()+1,d.getDate()];});
+  await chooseDate(...tomorrow);
+  await row.locator('.note-trigger').click();
+  assert.equal(await page.locator('#noteContent').inputValue(),'');
+  await page.locator('#noteContent').fill('这是第二天的独立补充');
+  await page.locator('#noteForm [type=submit]').click();
+  await page.waitForFunction(()=>!document.querySelector('#noteDialog').open);
+  await chooseDate(...today);
+  assert.equal(await note.textContent(),text);
+  await page.reload();await waitReady();
+  await note.waitFor();assert.equal(await note.textContent(),text);
+  check('per-day independence and refresh persistence (fixture storage)');
+  await row.locator('.note-trigger').click();
+  await page.locator('#noteContent').fill('失败时保留这段输入');
+  await page.evaluate(()=>window.__fixture.failNext='todo_daily_notes:upsert');
+  await page.locator('#noteForm [type=submit]').click();
+  await page.waitForFunction(()=>document.querySelector('#noteError').textContent.includes('保存失败'));
+  assert.equal(await page.locator('#noteContent').inputValue(),'失败时保留这段输入');
+  await page.locator('#noteForm [type=submit]').click();
+  await page.waitForFunction(()=>!document.querySelector('#noteDialog').open);
+  await row.locator('.check').click();await waitReady();
+  assert.equal(await note.textContent(),'失败时保留这段输入');
+  check('failed save retains draft; completing task retains supplement');
+  await page.locator('#calendarButton').click();
+  await page.locator('#calendarYear').fill('0');await page.locator('#calendarYear').press('Enter');
+  assert.match(await page.locator('#calendarError').textContent(),/1—9999/);
+  await page.locator('.calendar-dialog [data-close]').click();
+  await chooseDate(2028,2,29);
+  assert.match(await page.locator('#fullDate').textContent(),/2028年2月29日/);
+  await page.locator('#calendarButton').click();
+  await page.locator('[data-calendar-date="2028-02-29"]').press('ArrowRight');
+  assert.equal(await page.evaluate(()=>document.activeElement.dataset.calendarDate),'2028-03-01');
+  await page.locator('.calendar-dialog [data-today]').click();
+  check('direct year/month navigation, leap day and arrow-key cross-month navigation');
+  await page.locator('#backgroundButton').click();
+  await page.locator('#backgroundFile').setInputFiles({name:'wrong.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg/>')});
+  await page.waitForFunction(()=>document.querySelector('#backgroundError').textContent.includes('请选择'));
+  const dataUrl=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=3500;c.height=1800;const ctx=c.getContext('2d');ctx.fillStyle='#678c58';ctx.fillRect(0,0,c.width,c.height);return c.toDataURL('image/png');});
+  const png=Buffer.from(dataUrl.split(',')[1],'base64');
+  await page.locator('#backgroundFile').setInputFiles({name:'compression-test.png',mimeType:'image/png',buffer:png});
+  await page.waitForFunction(()=>document.querySelector('[data-file-info]').textContent.includes('compression-test'));
+  const dimensions=await page.evaluate(async()=>{const img=document.querySelector('.page-background');await img.decode();return [img.naturalWidth,img.naturalHeight];});
+  assert.equal(dimensions[0],2560);assert.ok(dimensions[1]<1800);
+  await page.locator('#backgroundDialog [data-cancel]').last().click();
+  await page.locator('.page-background').waitFor({state:'hidden'});
+  assert.equal(await page.locator('.page-background').isHidden(),true);
+  await page.locator('#backgroundButton').click();
+  await page.locator('#backgroundFile').setInputFiles({name:'compression-test.png',mimeType:'image/png',buffer:png});
+  await page.waitForFunction(()=>document.querySelector('[data-file-info]').textContent.includes('compression-test'));
+  await page.evaluate(()=>window.__fixture.failNext='storage:upload');
+  await page.locator('#backgroundDialog [data-save]').click();
+  await page.waitForFunction(()=>document.querySelector('#backgroundError').textContent.includes('保存失败'));
+  await page.locator('#backgroundDialog [data-save]').click();
+  await page.waitForFunction(()=>!document.querySelector('#backgroundDialog').open);
+  await page.reload();await waitReady();
+  assert.equal(await page.locator('.page-background').isVisible(),true);
+  assert.equal(await page.evaluate(()=>window.__fixture.snapshot().todo_preferences[0].background_kind),'upload');
+  check('background compression, invalid file, cancel, failed upload retry and persistence');
+  const gif=Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7','base64');
+  const imageChecks=await page.evaluate(async bytes=>{
+    const {prepareBackground,isAnimatedWebp}=await import('/src/background-image.js');
+    const file=new File([new Uint8Array(bytes)],'test.gif',{type:'image/gif'});
+    const result=await prepareBackground(file);
+    const header=new Uint8Array(32);header.set(new TextEncoder().encode('RIFF'),0);header.set(new TextEncoder().encode('WEBPVP8X'),8);header[20]=2;
+    return {same:result.blob===file,animated:result.animated,webp:await isAnimatedWebp(new Blob([header]))};
+  },[...gif]);
+  assert.deepEqual(imageChecks,{same:true,animated:true,webp:true});
+  check('GIF bytes preserved; animated WebP detection');
+  await page.evaluate(()=>Promise.all([document.fonts.load('700 28px "Source Han Serif"','今天'),document.fonts.load('18px "LXGW WenKai"','补充')]));
+  assert.match(await row.locator('.task-title').evaluate(node=>getComputedStyle(node).fontFamily),/Source Han Serif/);
+  assert.match(await note.evaluate(node=>getComputedStyle(node).fontFamily),/LXGW WenKai/);
+  check('both requested font files load and apply');
+  await mkdir(new URL('./artifacts/',import.meta.url),{recursive:true});
+  await page.screenshot({path:fileURLToPath(new URL('./artifacts/features-desktop.png',import.meta.url)),fullPage:true});
+  await page.locator('#calendarButton').click();
+  await page.screenshot({path:fileURLToPath(new URL('./artifacts/features-calendar.png',import.meta.url))});
+  await page.locator('.calendar-dialog [data-close]').click();
+  for(const width of [390,320]) {
+    await page.setViewportSize({width,height:900});
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),`page overflow at ${width}px`);
+    await page.locator('#calendarButton').click();
+    const bounds=await page.locator('.calendar-dialog').boundingBox();assert.ok(bounds.x>=0&&bounds.x+bounds.width<=width);
+    await page.locator('.calendar-dialog [data-close]').click();
+    await row.locator('.note-trigger').click();
+    assert.ok(await page.locator('#noteForm [type=submit]').isVisible());
+    await page.locator('#noteDialog [data-cancel]').click();
+  }
+  check('320px/390px responsive dialogs and page without horizontal overflow');
+  await page.screenshot({path:fileURLToPath(new URL('./artifacts/features-mobile.png',import.meta.url)),fullPage:true});
+  await row.locator('.note-trigger').click();await page.locator('#noteDialog [data-clear]').click();
+  await page.waitForFunction(()=>!document.querySelector('#noteDialog').open);
+  assert.equal(await note.count(),0);
+  await page.locator('#logoutButton').click();
+  await page.locator('#appRoot').waitFor({state:'hidden'});
+  assert.equal(await page.locator('.page-background').isHidden(),true);
+  assert.equal(await page.locator('#appRoot').isHidden(),true);
+  check('clear supplement and clear private background on sign-out');
+  assert.deepEqual(errors,[]);
+  const built=await readFile(new URL('../dist/index.html',import.meta.url),'utf8');
+  assert.ok(!built.includes('fake-cloudbase')&&!built.includes('本地交互预览'));
+  check('no browser errors; fixture absent from production HTML');
+} finally {if(errors.length)console.error('Browser errors:',errors);await browser.close();server?.kill();}

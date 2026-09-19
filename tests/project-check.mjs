@@ -26,6 +26,8 @@ const required = [
   ["任务优先级", /name="taskPriority"[\s\S]*value="urgent"/],
   ["任务每日时间段", /id="taskStartTime"[\s\S]*id="taskEndTime"/],
   ["动效开关", /id="motionButton"[^>]*aria-pressed="true"/],
+  ["日历入口", /id="calendarButton"/],
+  ["个人背景入口", /id="backgroundButton"/],
   ["本机数据迁移", /id="migrateButton"/],
   ["本地任务存储键", /daily-todo\.tasks\.v1/],
   ["本地完成记录键", /daily-todo\.dailyCompletions\.v1/],
@@ -36,6 +38,10 @@ const registerFunction = await readFile(new URL("../cloudfunctions/register-frie
 const companion = await readFile(new URL("../src/companion.js", import.meta.url), "utf8");
 const companionCss = await readFile(new URL("../src/companion.css", import.meta.url), "utf8");
 const notices = await readFile(new URL("../THIRD_PARTY_NOTICES.md", import.meta.url), "utf8");
+const notes = await readFile(new URL("../src/daily-notes.js", import.meta.url), "utf8");
+const appearance = await readFile(new URL("../src/appearance.js", import.meta.url), "utf8");
+const featureCss = await readFile(new URL("../src/features.css", import.meta.url), "utf8");
+const migration = await readFile(new URL("../cloudbase/migrations/20260918160000_daily_notes_background.sql", import.meta.url), "utf8");
 
 const failures = required.filter(([, pattern]) => !pattern.test(html));
 if (failures.length) {
@@ -75,6 +81,26 @@ if (/CLOUDBASE_API_KEY|TENCENTCLOUD_SECRET/.test(registration)) {
 
 if (!/oneko\.gif/.test(companion) || !/celebrate/.test(companion) || !/MOTION_KEY/.test(companion)) {
   console.error("项目检查失败：宠物、完成庆祝或动效偏好没有正确接入。");
+  process.exit(1);
+}
+
+if (!/textContent=text/.test(notes) || !/maxlength="500"/.test(notes) || !/note_date/.test(notes)) {
+  console.error("项目检查失败：按天补充或纯文本显示没有完整接入。");
+  process.exit(1);
+}
+
+if (!/app\.storage\.from\('todo-backgrounds'\)/.test(appearance) || !/createSignedUrl/.test(appearance)) {
+  console.error("项目检查失败：个人背景未使用 CloudBase PG Storage v3。");
+  process.exit(1);
+}
+
+if (!/Source Han Serif/.test(featureCss) || !/LXGW WenKai/.test(featureCss)) {
+  console.error("项目检查失败：指定字体没有接入。");
+  process.exit(1);
+}
+
+if (!/CREATE TABLE public\.todo_daily_notes/.test(migration) || !/ALTER TABLE storage\.objects ENABLE ROW LEVEL SECURITY/.test(migration) || !/CREATE POLICY todo_backgrounds_insert/.test(migration)) {
+  console.error("项目检查失败：补充或背景的云端表与 RLS 迁移不完整。");
   process.exit(1);
 }
 

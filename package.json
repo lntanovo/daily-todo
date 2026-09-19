@@ -1,6 +1,6 @@
 {
   "name": "daily-todo-editorial",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "description": "Cloud-synced daily todo board with CloudBase username login and PostgreSQL storage.",
   "scripts": {
@@ -9,6 +9,7 @@
     "preview": "vite preview --host 127.0.0.1",
     "check": "node tests/project-check.mjs",
     "test:edge": "node tests/edge-password-toggle.mjs",
+    "test:features": "node tests/features.test.mjs",
     "test:registration": "node --test tests/registration.test.cjs"
   },
   "devDependencies": {

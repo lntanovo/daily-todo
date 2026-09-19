@@ -12,7 +12,8 @@
     Warm Paper only: #F3EBDD / #24211D / #C65432，纸张色、墨色、印章红。
     优先级：普通 #2F6F9F（蓝）/ 紧急 #B83A2F（红）；只在任务状态中使用。
     v1.2 动效：像素宠物位于页面底部，暖红花瓣悬浮且不拦截交互；完成任务时集中回应。
-    字体：Georgia + Microsoft YaHei；间距：8px 基线；圆角：0/14/999px；无装饰性阴影。
+    字体：任务标题思源宋体，每日补充霞鹜文楷；其他沿用 Georgia + Microsoft YaHei。
+    v1.3：按日补充、年月日历、仅使用用户提供的背景图；间距 8px 基线。
     页面节奏：工具栏 → 周导航 → 大标题与进度 → 任务清单；不使用无意义卡片嵌套。
   -->
   <style>
@@ -438,6 +439,7 @@
         <button class="button" id="todayButton" type="button">回到今天</button>
         <button class="button primary" id="addButton" type="button">＋ 新建事项</button>
         <button class="button" id="motionButton" type="button" aria-pressed="true">动效 / MOTION ON</button>
+        <button class="button" id="backgroundButton" type="button">背景 / BACKGROUND</button>
         <button class="button" id="logoutButton" type="button">退出</button>
       </div>
     </header>
@@ -457,6 +459,7 @@
       <div class="week-head">
         <span class="week-title" id="weekLabel"></span>
         <div class="week-arrows">
+          <button class="icon-button" id="calendarButton" type="button" aria-label="打开日历，选择年月日" title="选择日期"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/></svg></button>
           <button class="icon-button" id="prevWeek" aria-label="上一周">←</button>
           <button class="icon-button" id="nextWeek" aria-label="下一周">→</button>
         </div>
@@ -528,7 +531,11 @@
     import cloudbase from "@cloudbase/js-sdk";
     import { setupRegistration } from "./src/registration.js";
     import { setupCompanion } from "./src/companion.js";
+    import { setupCalendar } from "./src/calendar.js";
+    import { setupDailyNotes } from "./src/daily-notes.js";
+    import { setupAppearance } from "./src/appearance.js";
     import "./src/companion.css";
+    import "./src/features.css";
 
     const cloudConfig = {
       env: import.meta.env.VITE_CLOUDBASE_ENV_ID,
@@ -568,6 +575,11 @@
     const registration = setupRegistration({ cloudConfig, el });
     const companion = setupCompanion({ motionButton: el("motionButton") });
     const taskDialog = el("taskDialog");
+    const notes = setupDailyNotes({ db, getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, onChange: renderTasks });
+    const appearance = setupAppearance({ app: cloudApp, db, button: el("backgroundButton"), getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, notify: showStorageStatus });
+    setupCalendar({ button: el("calendarButton"), getSelectedDate: () => state.selectedDate, countTasks: date => tasksFor(date).length, onSelect: date => {
+      state.selectedDate = date; state.weekAnchor = startOfWeek(fromISO(date)); render();
+    }});
 
     function readValue(key) {
       try { return localStorage.getItem(key); }
@@ -860,14 +872,16 @@
       }
       el("taskList").innerHTML = items.map(task => `<article class="task-row priority-${task.priority} ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
         <button class="check" data-action="toggle" aria-pressed="${isDone(task, state.selectedDate)}"></button>
-        <div class="task-content"><p class="task-title"></p><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</span></div></div>
+        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</span></div></div>
         <div class="task-actions"><button class="task-action" data-action="edit" aria-label="编辑">编辑</button><button class="task-action delete" data-action="delete" aria-label="删除">删除</button></div>
       </article>`).join("");
       document.querySelectorAll(".task-row").forEach((row, index) => {
         row.querySelector(".task-title").textContent = items[index].title;
+        notes.mount(row.querySelector(".task-notes"), items[index], state.selectedDate);
         row.querySelector(".check").setAttribute("aria-label", `${isDone(items[index], state.selectedDate) ? "取消完成" : "完成"}：${items[index].title}`);
         row.addEventListener("click", event => { void handleTaskAction(event, items[index]); });
       });
+      notes.ensure(state.selectedDate);
     }
 
     async function handleTaskAction(event, task) {
@@ -887,7 +901,7 @@
         }
       }
       if (action === "edit") openDialog(task);
-      if (action === "delete" && confirm(task.type === "range" ? `删除整条共同任务“${task.title}”？该任务所有日期的完成记录也会删除。` : `删除“${task.title}”？`)) {
+      if (action === "delete" && confirm(`删除“${task.title}”？该任务所有日期的完成记录和补充也会删除。`)) {
         const tasks = state.tasks.filter(item => item.id !== task.id);
         const completions = { ...state.completions };
         Object.keys(completions).filter(key => key === task.id || key.startsWith(task.id + ":")).forEach(key => delete completions[key]);
@@ -1021,6 +1035,8 @@
     }
 
     function showLogin(message = "") {
+      notes.reset();
+      appearance.reset();
       state.session = null;
       state.tasks = [];
       state.completions = {};
@@ -1060,6 +1076,7 @@
         render();
         updateMigrationPrompt();
         showStorageStatus("");
+        await appearance.load();
       } catch (error) {
         state.tasks = [];
         state.completions = {};
