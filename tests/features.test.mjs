@@ -18,13 +18,17 @@ catch {
 const browser = await chromium.launch({channel:'msedge',headless:true});
 const page = await browser.newPage({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
 const errors=[];
-page.on('pageerror',error=>errors.push(error.message));
+page.on('pageerror',error=>errors.push(error.stack||error.message));
 page.on('console',message=>{if(message.type()==='error')errors.push(message.text());});
 page.on('dialog',dialog=>dialog.accept());
 const row=page.locator('[data-id="fixture-range"]');
 const note=row.locator('.daily-note');
 const waitReady=()=>page.waitForFunction(()=>document.querySelector('#appRoot')?.getAttribute('aria-busy')==='false');
 const check=label=>console.log(`PASS ${label}`);
+async function openSettings() {
+  if(await page.locator('#settingsDrawer').isHidden()) await page.locator('#settingsButton').click();
+  await page.locator('#settingsDrawer').waitFor({state:'visible'});
+}
 async function chooseDate(year,month,day) {
   await page.locator('#calendarButton').click();
   await page.locator('#calendarYear').fill(String(year));
@@ -35,6 +39,30 @@ async function chooseDate(year,month,day) {
 }
 try {
   await page.goto(url);await waitReady();
+  assert.equal(await page.locator('.toolbar > button').count(),2);
+  assert.equal(await page.locator('.brand-title').textContent(),'TO DO LIST');
+  assert.equal(await page.locator('.brand small').count(),0);
+  const brandBox=await page.locator('.brand').boundingBox();
+  const focusHomeBox=await page.locator('.focus-home').boundingBox();
+  assert.ok(focusHomeBox.x>brandBox.x+brandBox.width-2);
+  assert.ok(parseFloat(await page.locator('#fullDate').evaluate(node=>getComputedStyle(node).fontSize))>=24);
+  assert.ok(parseFloat(await page.locator('#headline').evaluate(node=>getComputedStyle(node).fontSize))<=40);
+  assert.equal(await page.locator('#days, #weekLabel, #prevWeek, #nextWeek').count(),0);
+  assert.match(await page.locator('#fullDate').textContent(),/星期.+农历/);
+  const firstQuote=await page.locator('#headline').textContent();
+  await page.locator('#quoteNextButton').click();
+  assert.notEqual(await page.locator('#headline').textContent(),firstQuote);
+  await openSettings();
+  assert.equal(await page.locator('body').evaluate(node=>node.classList.contains('settings-open')),true);
+  assert.ok(await page.locator('#quoteLibrary option').count()>=30);
+  await page.locator('#customQuote').fill('今天先完成真正重要的一件事。');
+  await page.locator('#useCustomQuote').click();
+  assert.equal(await page.locator('#headline').textContent(),'「今天先完成真正重要的一件事。」');
+  await page.locator('#settingsClose').click();
+  const settingsPosition=await page.locator('#settingsButton').evaluate(node=>({left:parseFloat(getComputedStyle(node).left),bottom:parseFloat(getComputedStyle(node).bottom)}));
+  assert.ok(settingsPosition.left<=18&&settingsPosition.bottom<=18);
+  assert.equal(await page.locator('#settingsDrawer').isHidden(),true);
+  check('compact header, lunar date, switchable words and accessible settings drawer');
   await row.locator('.note-trigger').click();
   const text='今天完成了第一步。\n<img src=x onerror=alert(1)> 这只是文字';
   await page.locator('#noteContent').fill(text);
@@ -72,13 +100,15 @@ try {
   assert.match(await page.locator('#calendarError').textContent(),/1—9999/);
   await page.locator('.calendar-dialog [data-close]').click();
   await chooseDate(2028,2,29);
-  assert.match(await page.locator('#fullDate').textContent(),/2028年2月29日/);
+  assert.match(await page.locator('#selectedDateNotice').textContent(),/2028年2月29日/);
   await page.locator('#calendarButton').click();
   await page.locator('[data-calendar-date="2028-02-29"]').press('ArrowRight');
   assert.equal(await page.evaluate(()=>document.activeElement.dataset.calendarDate),'2028-03-01');
   await page.locator('.calendar-dialog [data-today]').click();
   check('direct year/month navigation, leap day and arrow-key cross-month navigation');
+  await openSettings();
   await page.locator('#backgroundButton').click();
+  assert.equal(await page.locator('#settingsDrawer').isHidden(),true);
   await page.locator('#backgroundFile').setInputFiles({name:'wrong.svg',mimeType:'image/svg+xml',buffer:Buffer.from('<svg/>')});
   await page.waitForFunction(()=>document.querySelector('#backgroundError').textContent.includes('请选择'));
   const dataUrl=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=3500;c.height=1800;const ctx=c.getContext('2d');ctx.fillStyle='#678c58';ctx.fillRect(0,0,c.width,c.height);return c.toDataURL('image/png');});
@@ -90,6 +120,7 @@ try {
   await page.locator('#backgroundDialog [data-cancel]').last().click();
   await page.locator('.page-background').waitFor({state:'hidden'});
   assert.equal(await page.locator('.page-background').isHidden(),true);
+  await openSettings();
   await page.locator('#backgroundButton').click();
   await page.locator('#backgroundFile').setInputFiles({name:'compression-test.png',mimeType:'image/png',buffer:png});
   await page.waitForFunction(()=>document.querySelector('[data-file-info]').textContent.includes('compression-test'));
@@ -116,6 +147,25 @@ try {
   assert.match(await row.locator('.task-title').evaluate(node=>getComputedStyle(node).fontFamily),/Source Han Serif/);
   assert.match(await note.evaluate(node=>getComputedStyle(node).fontFamily),/LXGW WenKai/);
   check('both requested font files load and apply');
+  await openSettings();
+  await page.locator('#focusMinutes').fill('1');
+  await page.locator('#focusTask').selectOption('fixture-range');
+  await page.locator('#settingsClose').click();
+  await page.locator('#focusStart').click();
+  await page.locator('#focusMini').waitFor({state:'visible'});
+  await page.locator('#focusPause').click();
+  const pausedClock=await page.locator('#focusClock').textContent();
+  await delay(500);
+  assert.equal(await page.locator('#focusClock').textContent(),pausedClock);
+  await page.locator('#focusPause').click();
+  await delay(1100);
+  await page.locator('#focusEnd').click();
+  assert.equal(await page.locator('#focusMini').isHidden(),true);
+  await openSettings();
+  assert.match(await page.locator('#focusHistory').textContent(),/提前结束.+给自己的计划/);
+  await page.locator('#settingsClose').click();
+  assert.match(await row.locator('.task-focus').textContent(),/专注/);
+  check('focus start, pause, resume, early end, history and task association');
   await mkdir(new URL('./artifacts/',import.meta.url),{recursive:true});
   await page.screenshot({path:fileURLToPath(new URL('./artifacts/features-desktop.png',import.meta.url)),fullPage:true});
   await page.locator('#calendarButton').click();
@@ -130,12 +180,16 @@ try {
     await row.locator('.note-trigger').click();
     assert.ok(await page.locator('#noteForm [type=submit]').isVisible());
     await page.locator('#noteDialog [data-cancel]').click();
+    await openSettings();
+    const drawerBounds=await page.locator('#settingsDrawer').boundingBox();assert.ok(drawerBounds.x>=0&&drawerBounds.x+drawerBounds.width<=width);
+    await page.locator('#settingsClose').click();
   }
   check('320px/390px responsive dialogs and page without horizontal overflow');
   await page.screenshot({path:fileURLToPath(new URL('./artifacts/features-mobile.png',import.meta.url)),fullPage:true});
   await row.locator('.note-trigger').click();await page.locator('#noteDialog [data-clear]').click();
   await page.waitForFunction(()=>!document.querySelector('#noteDialog').open);
   assert.equal(await note.count(),0);
+  await openSettings();
   await page.locator('#logoutButton').click();
   await page.locator('#appRoot').waitFor({state:'hidden'});
   assert.equal(await page.locator('.page-background').isHidden(),true);

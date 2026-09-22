@@ -56,21 +56,20 @@ body.has-background::before { display: none; }
 body.has-background::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: rgb(243 235 221 / .40); }
 body.has-background .task-row:nth-child(even) { background: transparent; }
 /* A crisp glyph-only outline separates text from photo details without panels or blur. */
-body.has-background :is(.brand, .week-title, .day:not(.active), .hero-head,
+body.has-background :is(.brand, .focus-home, .hero-head,
   .task-content, .note-trigger, .task-action, .toolbar .button:not(.primary), .save-mode,
-  .user-identity, .week-arrows, .empty, .storage-status, .migration-banner) {
+  .user-identity, .empty, .storage-status) {
   text-shadow: var(--text-outline);
 }
-body.has-background :is(.brand small, .save-mode, .user-identity, .day-name,
-  .day-mark, .task-meta, .note-trigger, .progress span, .eyebrow) {
+body.has-background :is(.brand small, .save-mode, .user-identity,
+  .task-meta, .note-trigger, .progress span, .eyebrow) {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.5;
 }
-body.has-background .week-title { font-size: 14px; font-weight: 600; line-height: 1.5; }
 body.has-background :is(.toolbar .button, .task-action) { font-weight: 600; }
 body.has-background .daily-note { color: var(--ink); }
-body.has-background :is(.button.primary, .day.active) { text-shadow: none; }
+body.has-background .button.primary { text-shadow: none; }
 .background-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 24px; }
 .background-option { min-height: 84px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; font: 14px var(--body); overflow: hidden; }
 .background-option[aria-pressed='true'] { border: 2px solid var(--accent); }
@@ -79,8 +78,38 @@ textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent);
 @media(max-width:480px) {
   .calendar-dialog .dialog-inner { padding: 16px; }
   .calendar-navigation { gap: 6px; }
-  .week-head { gap: 12px; flex-wrap: wrap; }
   .daily-note, .note-input { font-size: 17px; }
   .note-trigger { min-height: 44px; }
   .calendar-footer { gap: 6px; }
+}
+
+/* v2.0 compact editorial home: date and words sit directly on the page background. */
+.date-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 22px 0 18px;
+  border-bottom: 1px solid var(--line);
+}
+.today-date { margin: 0; color: var(--ink); font: 800 clamp(24px, 2.8vw, 32px)/1.35 var(--display); letter-spacing: -.025em; }
+.selected-date-notice { margin: 6px 0 0; color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .05em; }
+.hero { padding: clamp(24px, 4vw, 44px) 0 22px; }
+.hero-head { align-items: end; }
+.quote-block { min-width: 0; max-width: 780px; }
+#headline { max-width: 780px; font: 700 clamp(25px, 3.4vw, 40px)/1.32 var(--display); letter-spacing: -.025em; text-wrap: balance; }
+.quote-footer { display: flex; align-items: center; gap: 12px; min-height: 36px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+.quote-next { min-height: 36px; padding: 0 2px; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 700; }
+.task-focus { color: var(--accent); font-weight: 700; }
+body.has-background :is(.today-date, .selected-date-notice, #headline, .quote-footer, .quote-next, .task-focus) { text-shadow: var(--text-outline); }
+body.has-background :is(.settings-drawer, dialog) :is(.today-date, .selected-date-notice, #headline, .quote-footer, .quote-next, .task-focus) { text-shadow: none; }
+
+@media(max-width:720px) {
+  .date-strip { padding-top: 18px; }
+  .hero { padding-top: 26px; }
+  .hero-head { gap: 22px; }
+  .progress { display: grid; grid-template-columns: auto 1fr; align-items: end; gap: 0 10px; width: 100%; }
+  .progress strong { font-size: 30px; }
+  .progress span { margin: 0 0 3px; }
+  .progress-track { grid-column: 1 / -1; width: 100%; }
 }

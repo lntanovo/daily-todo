@@ -1,0 +1,42 @@
+export const QUOTE_CATALOG = [
+  { id: "chuunibyou-seal", category: "chuunibyou", text: "今日的封印，由我亲手解除。" },
+  { id: "chuunibyou-progress", category: "chuunibyou", text: "命运的进度条，先推一格。" },
+  { id: "chuunibyou-dawn", category: "chuunibyou", text: "黎明尚远，但这一页由我改写。" },
+  { id: "chuunibyou-sword", category: "chuunibyou", text: "拔剑之前，先把待办清零。" },
+  { id: "chuunibyou-fate", category: "chuunibyou", text: "命运没有催我，是截止日期在催。" },
+  { id: "chuunibyou-awaken", category: "chuunibyou", text: "沉睡的执行力，此刻苏醒。" },
+  { id: "chuunibyou-map", category: "chuunibyou", text: "地图尚未展开，第一步已经点亮。" },
+  { id: "chuunibyou-boss", category: "chuunibyou", text: "今日的最终首领，不过是下一项任务。" },
+  { id: "chuunibyou-order", category: "chuunibyou", text: "以清醒为令，让混乱退场。" },
+  { id: "chuunibyou-chapter", category: "chuunibyou", text: "新的章节，从完成一个小目标开始。" },
+  { id: "abstract-loading", category: "abstract", text: "世界加载很慢，先完成这一件。" },
+  { id: "abstract-queue", category: "abstract", text: "大脑已上线，拖延正在排队。" },
+  { id: "abstract-bug", category: "abstract", text: "今天也在给人生修一点小 bug。" },
+  { id: "abstract-tab", category: "abstract", text: "把脑内的十七个标签页，先关掉一个。" },
+  { id: "abstract-buffer", category: "abstract", text: "先别缓冲人生，点一下开始。" },
+  { id: "abstract-tomato", category: "abstract", text: "番茄不是水果，是二十五分钟的结界。" },
+  { id: "abstract-desk", category: "abstract", text: "桌面很乱，目标先排成一行。" },
+  { id: "abstract-wifi", category: "abstract", text: "灵感信号一格，行动信号满格。" },
+  { id: "abstract-save", category: "abstract", text: "别忘了给今天按一次保存。" },
+  { id: "abstract-loading-two", category: "abstract", text: "人生没有读条动画，但任务会变少。" },
+  { id: "abstract-cache", category: "abstract", text: "清理一点拖延缓存，腾出今日内存。" },
+  { id: "abstract-patch", category: "abstract", text: "先发布一个能用的自己，再慢慢打补丁。" },
+  { id: "classic-daodejing", category: "classic", text: "千里之行，始于足下。", author: "《道德经》", source: "第六十四章" },
+  { id: "classic-xunzi", category: "classic", text: "不积跬步，无以至千里。", author: "《荀子》", source: "劝学" },
+  { id: "classic-analects", category: "classic", text: "知之者不如好之者，好之者不如乐之者。", author: "《论语》", source: "雍也" },
+  { id: "classic-xunzi-carve", category: "classic", text: "锲而不舍，金石可镂。", author: "《荀子》", source: "劝学" },
+  { id: "classic-zhongyong", category: "classic", text: "博学之，审问之，慎思之，明辨之，笃行之。", author: "《礼记》", source: "中庸" },
+  { id: "classic-lisao", category: "classic", text: "路漫漫其修远兮，吾将上下而求索。", author: "屈原", source: "《离骚》" },
+  { id: "classic-luyou", category: "classic", text: "纸上得来终觉浅，绝知此事要躬行。", author: "陆游", source: "《冬夜读书示子聿》" },
+  { id: "classic-libai", category: "classic", text: "长风破浪会有时，直挂云帆济沧海。", author: "李白", source: "《行路难·其一》" },
+  { id: "classic-analects-learn", category: "classic", text: "学而时习之，不亦说乎。", author: "《论语》", source: "学而" },
+  { id: "classic-analects-review", category: "classic", text: "温故而知新，可以为师矣。", author: "《论语》", source: "为政" },
+  { id: "classic-daodejing-tree", category: "classic", text: "合抱之木，生于毫末；九层之台，起于累土。", author: "《道德经》", source: "第六十四章" }
+];
+
+export const QUOTE_MODES = [
+  { value: "mixed", label: "混合" },
+  { value: "chuunibyou", label: "中二" },
+  { value: "abstract", label: "抽象" },
+  { value: "classic", label: "名言" }
+];

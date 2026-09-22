@@ -13,9 +13,9 @@
     优先级：普通 #2F6F9F（蓝）/ 紧急 #B83A2F（红）；只在任务状态中使用。
     v1.2 动效：像素宠物位于页面底部，暖红花瓣悬浮且不拦截交互；完成任务时集中回应。
     字体：任务标题思源宋体，每日补充霞鹜文楷；其他沿用 Georgia + Microsoft YaHei。
-    v1.3：按日补充、年月日历、仅使用用户提供的背景图；间距 8px 基线。
+    v2.0：设置抽屉、紧凑日期与农历、每日语录、本地专注计时预览；间距 8px 基线。
     可读性：标题正体、独立副标题行高；背景遮罩 40%，深色文字配细浅色字边，小字加粗。
-    页面节奏：工具栏 → 周导航 → 大标题与进度 → 任务清单；不使用无意义卡片嵌套。
+    页面节奏：精简工具栏 → 今日日期 → 语录与进度 → 任务清单；不使用无意义卡片嵌套。
   -->
   <style>
     :root {
@@ -131,24 +131,22 @@
     .auth-message { min-height: 22px; margin: 14px 0 0; color: var(--danger); font-size: 12px; line-height: 1.6; }
     .auth-note { margin: 18px 0 0; padding-top: 16px; border-top: 1px solid var(--line); }
 
-    .topbar, .week-head, .hero-head, .task-row, .form-actions {
+    .topbar, .hero-head, .task-row, .form-actions {
       display: flex;
       align-items: center;
     }
 
     .topbar {
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 24px;
+      display: grid;
+      grid-template-columns: auto minmax(340px, 1fr) auto;
+      gap: clamp(18px, 3vw, 38px);
       padding-bottom: 24px;
       border-bottom: 1px solid var(--line);
     }
 
     .brand {
       flex: 0 0 auto;
-      width: min(100%, 300px);
-      display: grid;
-      gap: 12px;
+      width: max-content;
     }
 
     .brand-title {
@@ -159,15 +157,7 @@
       letter-spacing: -.035em;
     }
 
-    .brand small {
-      display: block;
-      color: var(--muted);
-      font: 600 12px/1.6 var(--body);
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
-
-    .toolbar { display: flex; flex: 1 1 520px; min-width: 0; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .toolbar { display: flex; min-width: 0; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
     .user-identity {
       display: inline-flex;
@@ -213,27 +203,10 @@
     .button.primary { background: var(--ink); border-color: var(--ink); color: var(--bg); }
     .button.primary { background: var(--accent); border-color: var(--accent); color: #fff8ed; }
 
-    .week { padding: 24px 0 10px; }
-    .week-head { justify-content: space-between; margin-bottom: 16px; }
-    .week-title { color: var(--muted); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
-    .week-arrows { display: flex; gap: 8px; }
     .icon-button {
       width: 44px; height: 44px; border: 1px solid var(--line); border-radius: 50%;
       background: transparent; cursor: pointer; font-size: 20px;
     }
-
-    .days { display: grid; grid-template-columns: repeat(7, 1fr); border: 1px solid var(--line); }
-    .day {
-      min-width: 0; min-height: 90px; padding: 12px; border: 0; border-right: 1px solid var(--line);
-      background: transparent; color: var(--muted); text-align: left; cursor: pointer;
-    }
-    .day:last-child { border-right: 0; }
-    .day:hover { background: color-mix(in oklch, var(--surface) 70%, transparent); }
-    .day.active { background: var(--ink); color: var(--bg); }
-    .day.active { background: var(--accent); color: #fff8ed; }
-    .day-name { display: block; font-size: 11px; letter-spacing: .12em; }
-    .day-number { display: block; margin-top: 8px; font: 700 30px/1 var(--display); }
-    .day-mark { display: block; margin-top: 8px; font-size: 10px; min-height: 12px; }
 
     .hero { padding: clamp(42px, 7vw, 88px) 0 26px; }
     .hero-head { justify-content: space-between; gap: 32px; align-items: flex-end; }
@@ -345,10 +318,9 @@
       .auth-title-cn { margin-top: 20px; font-size: clamp(21px, 7vw, 30px); }
       .auth-credit { margin-top: 36px; }
       .auth-panel { padding: 28px 0 0; border-top: 1px solid var(--line); border-left: 0; }
-      .topbar, .hero-head { align-items: flex-start; flex-direction: column; }
+      .topbar { grid-template-columns: 1fr; gap: 16px; align-items: start; }
+      .hero-head { align-items: flex-start; flex-direction: column; }
       .toolbar { flex: 0 1 auto; width: 100%; justify-content: flex-start; }
-      .days { overflow-x: auto; grid-template-columns: repeat(7, 86px); }
-      .day { min-height: 78px; }
       .progress { text-align: left; }
       .task-actions { opacity: 1; }
       .date-range, .time-range { grid-template-columns: 1fr; }
@@ -436,47 +408,28 @@
 
   <main class="app" id="appRoot" hidden>
     <header class="topbar">
-      <div class="brand"><span class="brand-title">to do list</span><small>Daily intentions, clearly kept</small></div>
+      <div class="brand"><span class="brand-title">TO DO LIST</span></div>
+      <section class="focus-home" aria-label="番茄钟"><div id="focusHomeMount"></div></section>
       <div class="toolbar">
-        <span class="save-mode" id="saveMode" title="当前事项保存在登录账号的云端空间">CLOUD / 云端保存</span>
-        <span class="user-identity" id="userIdentity"></span>
-        <button class="button" id="importButton" type="button" hidden>导入本机事项</button>
         <button class="button" id="todayButton" type="button">回到今天</button>
         <button class="button primary" id="addButton" type="button">＋ 新建事项</button>
-        <button class="button" id="motionButton" type="button" aria-pressed="true">动效 / MOTION ON</button>
-        <button class="button" id="backgroundButton" type="button">背景 / BACKGROUND</button>
-        <button class="button" id="logoutButton" type="button">退出</button>
       </div>
     </header>
     <p id="storageStatus" class="storage-status" role="status" hidden></p>
-    <aside class="migration-banner" id="migrationBanner" hidden>
-      <div>
-        <strong>发现这个浏览器里的旧事项</strong>
-        <span id="migrationCopy"></span>
-      </div>
-      <div class="migration-actions">
-        <button class="button primary" id="migrateButton" type="button">复制到云端</button>
-        <button class="button" id="dismissMigrationButton" type="button">稍后处理</button>
-      </div>
-    </aside>
 
-    <section class="week" aria-label="周日期导航">
-      <div class="week-head">
-        <span class="week-title" id="weekLabel"></span>
-        <div class="week-arrows">
-          <button class="icon-button" id="calendarButton" type="button" aria-label="打开日历，选择年月日" title="选择日期"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/></svg></button>
-          <button class="icon-button" id="prevWeek" aria-label="上一周">←</button>
-          <button class="icon-button" id="nextWeek" aria-label="下一周">→</button>
-        </div>
+    <section class="date-strip" aria-label="今天与日期选择">
+      <div>
+        <p class="today-date" id="fullDate"></p>
+        <p class="selected-date-notice" id="selectedDateNotice" hidden></p>
       </div>
-      <div class="days" id="days"></div>
+      <button class="icon-button" id="calendarButton" type="button" aria-label="打开日历，选择年月日" title="选择日期"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/></svg></button>
     </section>
 
     <section class="hero">
       <div class="hero-head">
-        <div>
-          <p class="eyebrow" id="fullDate"></p>
-          <h1 id="headline">今天，需要完成的清单</h1>
+        <div class="quote-block">
+          <h1 id="headline"></h1>
+          <div class="quote-footer"><span id="quoteMeta" hidden></span><button class="quote-next" id="quoteNextButton" type="button">换一句</button></div>
         </div>
         <div class="progress" aria-live="polite"><strong id="progressValue">0/0</strong><span id="progressLabel">DONE TODAY / 今日完成</span><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div></div>
       </div>
@@ -484,6 +437,22 @@
 
     <section class="list" id="taskList" aria-label="所选日期的待办事项"></section>
   </main>
+
+  <button class="icon-button settings-trigger" id="settingsButton" type="button" aria-label="打开设置" aria-controls="settingsDrawer" aria-expanded="false" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21H9.6v-.1A1.7 1.7 0 0 0 8.5 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H3V9.6h.1A1.7 1.7 0 0 0 4.6 8.5a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6 1.7 1.7 0 0 0 .4-1.1V3h4v.1A1.7 1.7 0 0 0 15.5 4.6a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9c.16.38.37.72.7 1 .3.25.68.39 1.1.4h.1v4h-.1a1.7 1.7 0 0 0-1.8.6Z"/></svg>
+  </button>
+  <div class="settings-backdrop" id="settingsBackdrop" hidden></div>
+  <aside class="settings-drawer" id="settingsDrawer" role="dialog" aria-modal="true" aria-labelledby="settingsTitle" hidden>
+    <div class="settings-inner">
+      <div class="settings-heading"><div><h2 id="settingsTitle">设置</h2><small>SETTINGS</small></div><button class="icon-button" id="settingsClose" type="button" aria-label="关闭设置">×</button></div>
+      <section class="settings-section"><h3>账号与同步 <small>ACCOUNT</small></h3><div class="settings-stack"><span class="save-mode" id="saveMode" title="当前事项保存在登录账号的云端空间">CLOUD / 云端保存</span><span class="user-identity" id="userIdentity"></span><button class="button" id="logoutButton" type="button">退出登录</button></div></section>
+      <section class="settings-section"><h3>专注设置与统计 <small>FOCUS DETAILS</small></h3><div id="focusDetailsMount"></div></section>
+      <section class="settings-section"><h3>外观与陪伴 <small>APPEARANCE</small></h3><div class="settings-stack"><button class="button" id="backgroundButton" type="button">背景 / BACKGROUND</button><button class="button" id="motionButton" type="button" aria-pressed="true">花瓣动效 / MOTION ON</button><button class="button" id="petButton" type="button" aria-pressed="true">宠物 / PET ON</button></div></section>
+      <section class="settings-section"><h3>句子 <small>WORDS</small></h3><div class="settings-choice" id="quoteMode"></div><label class="quote-setting-label" for="quoteLibrary">句库选择</label><select class="quote-library" id="quoteLibrary"></select><label class="quote-setting-label" for="customQuote">我的句子（最多 80 字）</label><textarea class="custom-quote-input" id="customQuote" maxlength="80" rows="3" placeholder="写一句今天想看到的话"></textarea><button class="button quote-custom-button" id="useCustomQuote" type="button">使用我的句子</button></section>
+      <section class="settings-section" id="dataSettings" hidden><h3>数据 <small>DATA</small></h3><p class="settings-data-copy" id="migrationCopy"></p><button class="button primary" id="importButton" type="button">复制本机事项到云端</button></section>
+    </div>
+  </aside>
+  <div class="focus-mini" id="focusMini" hidden></div>
 
   <dialog id="taskDialog" aria-labelledby="dialogTitle">
     <form class="dialog-inner" id="taskForm" novalidate>
@@ -539,8 +508,15 @@
     import { setupCalendar } from "./src/calendar.js";
     import { setupDailyNotes } from "./src/daily-notes.js";
     import { setupAppearance } from "./src/appearance.js";
+    import { renderDateDisplay, scheduleShanghaiMidnight, shanghaiTodayKey } from "./src/date-display.js";
+    import { setupQuotes } from "./src/quotes.js";
+    import { setupSettings } from "./src/settings.js";
+    import { setupFocus } from "./src/focus.js";
+    import { formatFocusDuration } from "./src/focus-core.js";
     import "./src/companion.css";
     import "./src/features.css";
+    import "./src/settings.css";
+    import "./src/focus.css";
 
     const cloudConfig = {
       env: import.meta.env.VITE_CLOUDBASE_ENV_ID,
@@ -561,14 +537,13 @@
     };
     let storageMessage = "";
     let storageReadWarning = "";
-    const weekdays = ["周一", "周二", "周三", "周四", "周五", "周六", "周日"];
     const localSnapshot = {
       tasks: loadTasks(),
       completions: loadCompletions()
     };
     const state = {
-      selectedDate: toISO(new Date()),
-      weekAnchor: startOfWeek(new Date()),
+      selectedDate: shanghaiTodayKey(),
+      todayKey: shanghaiTodayKey(),
       tasks: [],
       completions: {},
       session: null,
@@ -578,13 +553,29 @@
 
     const el = id => document.getElementById(id);
     const registration = setupRegistration({ cloudConfig, el });
-    const companion = setupCompanion({ motionButton: el("motionButton") });
+    const settings = setupSettings({ openButton: el("settingsButton"), drawer: el("settingsDrawer"), backdrop: el("settingsBackdrop"), closeButton: el("settingsClose") });
+    const companion = setupCompanion({ motionButton: el("motionButton"), petButton: el("petButton") });
     const taskDialog = el("taskDialog");
     const notes = setupDailyNotes({ db, getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, onChange: renderTasks });
     const appearance = setupAppearance({ app: cloudApp, db, button: el("backgroundButton"), getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, notify: showStorageStatus });
+    const quotes = setupQuotes({ textElement: el("headline"), metaElement: el("quoteMeta"), nextButton: el("quoteNextButton"), modeContainer: el("quoteMode"), librarySelect: el("quoteLibrary"), customInput: el("customQuote"), customButton: el("useCustomQuote"), getUid: sessionUid });
+    const focus = setupFocus({
+      mount: el("focusHomeMount"), detailsMount: el("focusDetailsMount"), miniMount: el("focusMini"), getUid: sessionUid,
+      getTasks: () => state.tasks, notify: showStorageStatus, onExpand: settings.open,
+      onHistoryChange: () => { if (state.session) renderTasks(); }
+    });
+    el("backgroundButton").addEventListener("click", () => settings.close(), { capture: true });
     setupCalendar({ button: el("calendarButton"), getSelectedDate: () => state.selectedDate, countTasks: date => tasksFor(date).length, onSelect: date => {
-      state.selectedDate = date; state.weekAnchor = startOfWeek(fromISO(date)); render();
+      state.selectedDate = date; render();
     }});
+    scheduleShanghaiMidnight(() => {
+      const previousToday = state.todayKey;
+      const nextToday = shanghaiTodayKey();
+      state.todayKey = nextToday;
+      if (state.selectedDate === previousToday) state.selectedDate = nextToday;
+      quotes.refreshDay();
+      if (state.session) render();
+    });
 
     function readValue(key) {
       try { return localStorage.getItem(key); }
@@ -800,26 +791,14 @@
       }
     }
 
-    // DATES / 全部使用本地日历日期，跨周/月/年由 Date 的日历运算处理。
-    function toISO(date) {
-      const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-      return local.toISOString().slice(0, 10);
-    }
-    function fromISO(value) { return new Date(value + "T12:00:00"); }
+    // DATES / 业务日期键固定为 YYYY-MM-DD，不借用 UTC 切片或浏览器本地时区。
     function validDate(value) {
       if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value) || value < "0001-01-01") return false;
-      const date = fromISO(value);
-      return !Number.isNaN(date.getTime()) && toISO(date) === value;
-    }
-    function startOfWeek(date) {
-      const result = new Date(date);
-      const offset = (result.getDay() + 6) % 7;
-      result.setHours(12, 0, 0, 0);
-      result.setDate(result.getDate() - offset);
-      return result;
-    }
-    function plusDays(date, amount) {
-      const result = new Date(date); result.setDate(result.getDate() + amount); return result;
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(0);
+      date.setUTCFullYear(year, month - 1, day);
+      date.setUTCHours(0, 0, 0, 0);
+      return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
     }
     function appearsOn(task, date) {
       return task.type === "single" ? task.date === date : task.startDate <= date && task.endDate >= date;
@@ -834,52 +813,32 @@
     function completionKey(task, date) { return task.type === "range" ? `${task.id}:${date}` : task.id; }
     function isDone(task, date) { return Boolean(state.completions[completionKey(task, date)]); }
 
-    // VIEW / 重绘后保留键盘所在的日期或任务按钮。
+    // VIEW / 重绘后保留任务按钮焦点；日期选择统一由日历负责。
     function render() {
       const focused = document.activeElement;
-      const focusedDate = focused?.dataset.date;
       const focusedTask = focused?.closest(".task-row")?.dataset.id;
       const focusedAction = focused?.dataset.action;
-      renderWeek();
       renderTasks();
-      if (focusedDate) document.querySelector(`[data-date="${focusedDate}"]`)?.focus({ preventScroll: true });
       if (focusedTask) document.querySelector(`[data-id="${focusedTask}"] [data-action="${focusedAction}"]`)?.focus({ preventScroll: true });
     }
-    function renderWeek() {
-      const start = state.weekAnchor;
-      const end = plusDays(start, 6);
-      el("weekLabel").textContent = `${start.getFullYear()} · ${start.getMonth() + 1}月${start.getDate()}日 — ${end.getFullYear() !== start.getFullYear() ? end.getFullYear() + '年' : ''}${end.getMonth() + 1}月${end.getDate()}日`;
-      el("days").innerHTML = weekdays.map((name, index) => {
-        const date = plusDays(start, index);
-        const iso = toISO(date);
-        const count = tasksFor(iso).length;
-        return `<button class="day ${iso === state.selectedDate ? "active" : ""}" data-date="${iso}" type="button" aria-label="${iso} ${name}" aria-pressed="${iso === state.selectedDate}">
-          <span class="day-name">${name}</span><span class="day-number">${date.getDate()}</span>
-          <span class="day-mark">${iso === toISO(new Date()) ? "TODAY" : count ? `${count} TASK${count > 1 ? "S" : ""}` : ""}</span>
-        </button>`;
-      }).join("");
-      document.querySelectorAll(".day").forEach(button => button.addEventListener("click", () => {
-        state.selectedDate = button.dataset.date; render();
-      }));
-    }
     function renderTasks() {
-      const date = fromISO(state.selectedDate);
       const items = tasksFor(state.selectedDate);
       const done = items.filter(task => isDone(task, state.selectedDate)).length;
-      el("fullDate").textContent = new Intl.DateTimeFormat("zh-CN", { year: "numeric", month: "long", day: "numeric", weekday: "long" }).format(date);
-      el("headline").textContent = state.selectedDate === toISO(new Date()) ? "今天，需要完成的清单" : "这一天，需要完成的清单";
+      renderDateDisplay({ todayElement: el("fullDate"), selectedElement: el("selectedDateNotice"), selectedDate: state.selectedDate });
       el("progressValue").textContent = `${done}/${items.length}`;
-      el("progressLabel").textContent = state.selectedDate === toISO(new Date()) ? "DONE TODAY / 今日完成" : "COMPLETED / 当日完成";
+      el("progressLabel").textContent = state.selectedDate === shanghaiTodayKey() ? "DONE TODAY / 今日完成" : "COMPLETED / 当日完成";
       el("progressFill").style.width = items.length ? `${done / items.length * 100}%` : "0%";
       if (!items.length) {
         el("taskList").innerHTML = `<div class="empty"><strong>这一天还很轻。</strong><span>Nothing planned yet. 新建一个事项，给时间一个清晰的去处。</span></div>`;
         return;
       }
-      el("taskList").innerHTML = items.map(task => `<article class="task-row priority-${task.priority} ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
+      el("taskList").innerHTML = items.map(task => {
+        const focusSeconds = focus.getTaskSeconds(task.id, state.selectedDate);
+        return `<article class="task-row priority-${task.priority} ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
         <button class="check" data-action="toggle" aria-pressed="${isDone(task, state.selectedDate)}"></button>
-        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</span></div></div>
+        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</span>${focusSeconds ? `<span class="task-focus">专注 ${formatFocusDuration(focusSeconds)}</span>` : ""}</div></div>
         <div class="task-actions"><button class="task-action" data-action="edit" aria-label="编辑">编辑</button><button class="task-action delete" data-action="delete" aria-label="删除">删除</button></div>
-      </article>`).join("");
+      </article>`; }).join("");
       document.querySelectorAll(".task-row").forEach((row, index) => {
         row.querySelector(".task-title").textContent = items[index].title;
         notes.mount(row.querySelector(".task-notes"), items[index], state.selectedDate);
@@ -887,6 +846,7 @@
         row.addEventListener("click", event => { void handleTaskAction(event, items[index]); });
       });
       notes.ensure(state.selectedDate);
+      focus.refreshTasks();
     }
 
     async function handleTaskAction(event, task) {
@@ -979,7 +939,6 @@
       if (!await save(tasks, completions)) return el("formError").textContent = "保存失败，输入内容仍在，请根据页面提示重试。";
       if (!appearsOn(next, state.selectedDate)) {
         state.selectedDate = type === "single" ? next.date : next.startDate;
-        state.weekAnchor = startOfWeek(fromISO(state.selectedDate));
       }
       taskDialog.close(); render();
     });
@@ -990,7 +949,7 @@
     function updateMigrationPrompt() {
       const canImport = Boolean(state.session && localSnapshot.tasks.length && readValue(migrationMarkerKey()) !== "done");
       el("importButton").hidden = !canImport;
-      el("migrationBanner").hidden = !canImport;
+      el("dataSettings").hidden = !canImport;
       if (canImport) {
         el("migrationCopy").textContent = `可将 ${localSnapshot.tasks.length} 条本机事项复制到当前账号。原本地数据会保留，已在云端的同 ID 事项不会被覆盖。`;
       }
@@ -1042,11 +1001,16 @@
     function showLogin(message = "") {
       notes.reset();
       appearance.reset();
+      if (state.session) focus.pauseForLogout();
+      focus.reset();
+      quotes.setActive(false);
+      settings.close();
       state.session = null;
       state.tasks = [];
       state.completions = {};
       state.displayName = "";
       el("appRoot").hidden = true;
+      el("settingsButton").hidden = true;
       companion.setActive(false);
       el("authGate").hidden = false;
       el("authMessage").textContent = message;
@@ -1072,12 +1036,15 @@
       if (displayName) state.displayName = displayName;
       el("authGate").hidden = true;
       el("appRoot").hidden = false;
+      el("settingsButton").hidden = false;
       companion.setActive(true);
+      quotes.setActive(true);
       el("userIdentity").textContent = sessionLabel();
       el("saveMode").textContent = "CLOUD / 云端保存";
       setAppBusy(true);
       try {
         await loadCloudState();
+        focus.setActive(true);
         render();
         updateMigrationPrompt();
         showStorageStatus("");
@@ -1085,6 +1052,7 @@
       } catch (error) {
         state.tasks = [];
         state.completions = {};
+        focus.setActive(true);
         render();
         showStorageStatus(`云端事项读取失败：${messageOf(error)}`);
       } finally {
@@ -1149,10 +1117,9 @@
     el("addButton").addEventListener("click", () => openDialog());
     el("cancelButton").addEventListener("click", () => taskDialog.close());
     el("importButton").addEventListener("click", () => { void migrateLocalData(); });
-    el("migrateButton").addEventListener("click", () => { void migrateLocalData(); });
-    el("dismissMigrationButton").addEventListener("click", () => { el("migrationBanner").hidden = true; });
     el("logoutButton").addEventListener("click", async () => {
       if (!auth || state.busy) return;
+      focus.pauseForLogout();
       setAppBusy(true);
       try {
         const { error } = await auth.signOut();
@@ -1165,17 +1132,8 @@
       }
     });
     el("todayButton").addEventListener("click", () => {
-      const today = new Date(); state.selectedDate = toISO(today); state.weekAnchor = startOfWeek(today); render();
+      state.selectedDate = shanghaiTodayKey(); render();
     });
-    function moveWeek(amount) {
-      const nextDate = toISO(plusDays(fromISO(state.selectedDate), amount));
-      if (!validDate(nextDate)) return;
-      state.selectedDate = nextDate;
-      state.weekAnchor = startOfWeek(fromISO(nextDate));
-      render();
-    }
-    el("prevWeek").addEventListener("click", () => moveWeek(-7));
-    el("nextWeek").addEventListener("click", () => moveWeek(7));
     setPasswordVisibility(false);
     void boot();
   </script>

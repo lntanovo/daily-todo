@@ -3,6 +3,7 @@
 // See THIRD_PARTY_NOTICES.md for source revisions and license text.
 
 const MOTION_KEY = "daily-todo.motion.v1";
+const PET_ENABLED_KEY = "daily-todo.pet-enabled.v1";
 const PET_POSITION_KEY = "daily-todo.pet-position.v1";
 const SPRITE_SIZE = 32;
 
@@ -50,6 +51,16 @@ function savePreference(value) {
   catch { /* 动效偏好无法保存时，当前页面仍可继续使用。 */ }
 }
 
+function storedPetPreference() {
+  try { return localStorage.getItem(PET_ENABLED_KEY); }
+  catch { return null; }
+}
+
+function savePetPreference(value) {
+  try { localStorage.setItem(PET_ENABLED_KEY, value ? "on" : "off"); }
+  catch { /* 宠物偏好无法保存时，当前页面仍可继续使用。 */ }
+}
+
 function storedPetPosition() {
   try {
     const value = JSON.parse(localStorage.getItem(PET_POSITION_KEY));
@@ -72,7 +83,7 @@ function randomBetween(min, max) {
   return min + Math.random() * (max - min);
 }
 
-export function setupCompanion({ motionButton }) {
+export function setupCompanion({ motionButton, petButton }) {
   const layer = document.createElement("div");
   layer.className = "companion-layer";
   layer.hidden = true;
@@ -102,7 +113,9 @@ export function setupCompanion({ motionButton }) {
 
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const preference = storedPreference();
-  let enabled = preference === null ? !reducedMotion : preference === "on";
+  let motionEnabled = preference === null ? !reducedMotion : preference === "on";
+  const petPreference = storedPetPreference();
+  let petEnabled = petPreference === null ? true : petPreference === "on";
   let active = false;
   let ambientTimer = 0;
   let messageTimer = 0;
@@ -118,7 +131,8 @@ export function setupCompanion({ motionButton }) {
   let dragState = null;
   let suppressClickUntil = 0;
 
-  const visible = () => active && enabled && !document.hidden;
+  const petVisible = () => active && petEnabled && !document.hidden;
+  const motionVisible = () => active && motionEnabled && !document.hidden;
 
   function setSprite(name, frame = 0) {
     const frames = SPRITES[name] || SPRITES.idle;
@@ -216,7 +230,7 @@ export function setupCompanion({ motionButton }) {
   }
 
   function animate(timestamp) {
-    if (visible() && timestamp - lastFrameAt >= 120) {
+    if (petVisible() && motionEnabled && timestamp - lastFrameAt >= 120) {
       lastFrameAt = timestamp;
       updatePet(timestamp);
     }
@@ -224,7 +238,7 @@ export function setupCompanion({ motionButton }) {
   }
 
   function createPetal({ kind = "ambient", x = Math.random() * window.innerWidth, y = -24 } = {}) {
-    if (!visible()) return;
+    if (!motionVisible()) return;
     if (kind === "ambient" && petals.querySelectorAll('[data-kind="ambient"]').length >= 7) return;
     const petal = document.createElement("i");
     petal.className = `companion-petal ${kind}`;
@@ -253,7 +267,7 @@ export function setupCompanion({ motionButton }) {
   }
 
   function startAmbient() {
-    if (ambientTimer || !visible()) return;
+    if (ambientTimer || !motionVisible()) return;
     createPetal();
     ambientTimer = window.setInterval(() => createPetal(), 1700);
   }
@@ -265,18 +279,27 @@ export function setupCompanion({ motionButton }) {
   }
 
   function sync() {
-    const show = active && enabled;
+    const show = active && (petEnabled || motionEnabled);
     layer.hidden = !show;
-    document.documentElement.dataset.motion = enabled ? "on" : "off";
-    motionButton.setAttribute("aria-pressed", String(enabled));
-    motionButton.textContent = enabled ? "动效 / MOTION ON" : "动效 / MOTION OFF";
-    motionButton.title = enabled ? "关闭宠物和花瓣动效" : "开启宠物和花瓣动效";
-    if (show) {
+    pet.hidden = !active || !petEnabled;
+    document.documentElement.dataset.motion = motionEnabled ? "on" : "off";
+    document.documentElement.dataset.pet = petEnabled ? "on" : "off";
+    motionButton.setAttribute("aria-pressed", String(motionEnabled));
+    motionButton.textContent = motionEnabled ? "花瓣动效 / MOTION ON" : "花瓣动效 / MOTION OFF";
+    motionButton.title = motionEnabled ? "关闭花瓣和宠物动作" : "开启花瓣和宠物动作";
+    petButton.setAttribute("aria-pressed", String(petEnabled));
+    petButton.textContent = petEnabled ? "宠物 / PET ON" : "宠物 / PET OFF";
+    petButton.title = petEnabled ? "隐藏宠物" : "显示宠物";
+    if (petVisible()) {
       restorePetPosition();
+      if (!motionEnabled) setSprite("idle");
+    } else {
+      message.hidden = true;
+    }
+    if (motionVisible()) {
       startAmbient();
     } else {
       stopAmbient();
-      message.hidden = true;
     }
   }
 
@@ -289,7 +312,7 @@ export function setupCompanion({ motionButton }) {
   }
 
   function startDrag(event) {
-    if (!visible() || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if (!petVisible() || (event.pointerType === "mouse" && event.button !== 0)) return;
     const rect = pet.getBoundingClientRect();
     dragState = {
       pointerId: event.pointerId,
@@ -327,38 +350,52 @@ export function setupCompanion({ motionButton }) {
   }
 
   function petTheCat() {
-    if (!visible()) return;
-    reactionStartedAt = performance.now();
-    reactionEndsAt = reactionStartedAt + 960;
-    resetIdleAnimation();
-    pet.classList.remove("is-interacting");
-    void pet.offsetWidth;
-    pet.classList.add("is-interacting");
-    pet.addEventListener("animationend", () => pet.classList.remove("is-interacting"), { once: true });
+    if (!petVisible()) return;
+    if (motionEnabled) {
+      reactionStartedAt = performance.now();
+      reactionEndsAt = reactionStartedAt + 960;
+      resetIdleAnimation();
+      pet.classList.remove("is-interacting");
+      void pet.offsetWidth;
+      pet.classList.add("is-interacting");
+      pet.addEventListener("animationend", () => pet.classList.remove("is-interacting"), { once: true });
+    }
     say(PET_REPLIES[Math.floor(Math.random() * PET_REPLIES.length)]);
-    const { x, y } = petCenter();
-    for (let index = 0; index < 5; index += 1) {
-      window.setTimeout(() => createPetal({ kind: "burst", x, y }), index * 28);
+    if (motionEnabled) {
+      const { x, y } = petCenter();
+      for (let index = 0; index < 5; index += 1) {
+        window.setTimeout(() => createPetal({ kind: "burst", x, y }), index * 28);
+      }
     }
   }
 
   function celebrate({ allDone = false } = {}) {
-    if (!visible()) return;
-    pet.classList.remove("is-celebrating");
-    void pet.offsetWidth;
-    pet.classList.add("is-celebrating");
-    pet.addEventListener("animationend", () => pet.classList.remove("is-celebrating"), { once: true });
-    say(allDone ? "今天的清单，漂亮收尾。" : ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]);
+    if (!active) return;
+    if (petVisible()) {
+      if (motionEnabled) {
+        pet.classList.remove("is-celebrating");
+        void pet.offsetWidth;
+        pet.classList.add("is-celebrating");
+        pet.addEventListener("animationend", () => pet.classList.remove("is-celebrating"), { once: true });
+      }
+      say(allDone ? "今天的清单，漂亮收尾。" : ENCOURAGEMENTS[Math.floor(Math.random() * ENCOURAGEMENTS.length)]);
+    }
+    if (!motionEnabled) return;
     const count = allDone ? 24 : 10;
-    const { x, y } = petCenter();
+    const { x, y } = petVisible() ? petCenter() : { x: window.innerWidth / 2, y: window.innerHeight * .8 };
     for (let index = 0; index < count; index += 1) {
       window.setTimeout(() => createPetal({ kind: "burst", x, y }), index * 22);
     }
   }
 
   motionButton.addEventListener("click", () => {
-    enabled = !enabled;
-    savePreference(enabled);
+    motionEnabled = !motionEnabled;
+    savePreference(motionEnabled);
+    sync();
+  });
+  petButton.addEventListener("click", () => {
+    petEnabled = !petEnabled;
+    savePetPreference(petEnabled);
     sync();
   });
   pet.addEventListener("pointerdown", startDrag);
@@ -372,7 +409,7 @@ export function setupCompanion({ motionButton }) {
     }
     petTheCat();
   });
-  document.addEventListener("visibilitychange", () => visible() ? startAmbient() : stopAmbient());
+  document.addEventListener("visibilitychange", () => motionVisible() ? startAmbient() : stopAmbient());
   window.addEventListener("resize", restorePetPosition, { passive: true });
 
   setSprite("idle");

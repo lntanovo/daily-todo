@@ -4,7 +4,7 @@ const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
 const required = [
   ["页面标题", /<title>to do list \/ 今日待办<\/title>/],
-  ["周导航", /id="days"/],
+  ["紧凑日期", /id="selectedDateNotice"/],
   ["任务清单", /id="taskList"/],
   ["新增按钮", /id="addButton"/],
   ["暖色单主题", /Warm Paper only/],
@@ -26,9 +26,13 @@ const required = [
   ["任务优先级", /name="taskPriority"[\s\S]*value="urgent"/],
   ["任务每日时间段", /id="taskStartTime"[\s\S]*id="taskEndTime"/],
   ["动效开关", /id="motionButton"[^>]*aria-pressed="true"/],
+  ["独立宠物开关", /id="petButton"[^>]*aria-pressed="true"/],
+  ["设置抽屉", /id="settingsDrawer"[^>]*role="dialog"/],
+  ["首页专注入口", /id="focusHomeMount"/],
+  ["可切换句子", /id="quoteNextButton"/],
   ["日历入口", /id="calendarButton"/],
   ["个人背景入口", /id="backgroundButton"/],
-  ["本机数据迁移", /id="migrateButton"/],
+  ["本机数据迁移", /id="importButton"/],
   ["本地任务存储键", /daily-todo\.tasks\.v1/],
   ["本地完成记录键", /daily-todo\.dailyCompletions\.v1/],
 ];
@@ -42,6 +46,9 @@ const notes = await readFile(new URL("../src/daily-notes.js", import.meta.url), 
 const appearance = await readFile(new URL("../src/appearance.js", import.meta.url), "utf8");
 const featureCss = await readFile(new URL("../src/features.css", import.meta.url), "utf8");
 const migration = await readFile(new URL("../cloudbase/migrations/20260918160000_daily_notes_background.sql", import.meta.url), "utf8");
+const focusCore = await readFile(new URL("../src/focus-core.js", import.meta.url), "utf8");
+const dateDisplay = await readFile(new URL("../src/date-display.js", import.meta.url), "utf8");
+const quotes = await readFile(new URL("../src/quotes.js", import.meta.url), "utf8");
 
 const failures = required.filter(([, pattern]) => !pattern.test(html));
 if (failures.length) {
@@ -61,6 +68,16 @@ if (/getLoginState\(|signInAnonymously\(|app\.database\(/.test(html)) {
 
 if (/data-theme=|id="themeButton"|Dark Editorial/.test(html)) {
   console.error("项目检查失败：冷色主题或主题切换入口仍然存在。");
+  process.exit(1);
+}
+
+if (/id="(?:days|weekLabel|prevWeek|nextWeek)"/.test(html) || /function renderWeek\(/.test(html)) {
+  console.error("项目检查失败：已删除的首页周视图仍然存在。");
+  process.exit(1);
+}
+
+if (!/<span class="brand-title">TO DO LIST<\/span>/.test(html) || /Daily intentions, clearly kept/.test(html)) {
+  console.error("项目检查失败：品牌标题未按要求精简为 TO DO LIST。");
   process.exit(1);
 }
 
@@ -96,6 +113,11 @@ if (!/app\.storage\.from\('todo-backgrounds'\)/.test(appearance) || !/createSign
 
 if (!/Source Han Serif/.test(featureCss) || !/LXGW WenKai/.test(featureCss)) {
   console.error("项目检查失败：指定字体没有接入。");
+  process.exit(1);
+}
+
+if (!/splitSegmentByShanghaiDate/.test(focusCore) || !/Asia\/Shanghai/.test(dateDisplay) || !/daily-todo\.quote\.v1/.test(quotes)) {
+  console.error("项目检查失败：v2.0 日期、语录或专注核心未完整接入。");
   process.exit(1);
 }
 
