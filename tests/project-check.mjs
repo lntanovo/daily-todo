@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
 const required = [
-  ["页面标题", /<title>Today \/ 今日待办<\/title>/],
+  ["页面标题", /<title>to do list \/ 今日待办<\/title>/],
   ["周导航", /id="days"/],
   ["任务清单", /id="taskList"/],
   ["新增按钮", /id="addButton"/],

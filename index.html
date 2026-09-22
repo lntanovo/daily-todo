@@ -3,17 +3,18 @@
 <head>
   <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Today / 今日待办</title>
+  <title>to do list / 今日待办</title>
   <meta name="description" content="带有陪伴宠物与花瓣动效的暖色每日待办工作台，支持周视图、时间段任务和云端保存。">
   <meta name="theme-color" content="#f3ebdd">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f3ebdd'/%3E%3Cpath d='M17 34l10 10 21-25' fill='none' stroke='%23c65432' stroke-width='8' stroke-linecap='square'/%3E%3C/svg%3E">
   <!--
     DESIGN SYSTEM / 草稿契约
-    Warm Paper only: #F3EBDD / #24211D / #C65432，纸张色、墨色、印章红。
+    Warm Paper only: #F3EBDD / #1F1C18 / #B2492D，纸张色、深墨色、印章红。
     优先级：普通 #2F6F9F（蓝）/ 紧急 #B83A2F（红）；只在任务状态中使用。
     v1.2 动效：像素宠物位于页面底部，暖红花瓣悬浮且不拦截交互；完成任务时集中回应。
     字体：任务标题思源宋体，每日补充霞鹜文楷；其他沿用 Georgia + Microsoft YaHei。
     v1.3：按日补充、年月日历、仅使用用户提供的背景图；间距 8px 基线。
+    可读性：标题正体、独立副标题行高；背景遮罩 40%，深色文字配细浅色字边，小字加粗。
     页面节奏：工具栏 → 周导航 → 大标题与进度 → 任务清单；不使用无意义卡片嵌套。
   -->
   <style>
@@ -21,10 +22,10 @@
       color-scheme: light;
       --bg: #f3ebdd;
       --surface: #ebe0cd;
-      --ink: #24211d;
-      --muted: #71695e;
+      --ink: #1f1c18;
+      --muted: #4f473e;
       --line: #b9ad9a;
-      --accent: #c65432;
+      --accent: #b2492d;
       --danger: #a82e23;
       --priority-normal: #2f6f9f;
       --priority-urgent: #b83a2f;
@@ -137,32 +138,36 @@
 
     .topbar {
       justify-content: space-between;
+      flex-wrap: wrap;
       gap: 24px;
       padding-bottom: 24px;
       border-bottom: 1px solid var(--line);
     }
 
     .brand {
-      font: 700 clamp(22px, 2.3vw, 34px)/1 var(--display);
-      letter-spacing: -.04em;
+      flex: 0 0 auto;
+      width: min(100%, 300px);
+      display: grid;
+      gap: 12px;
+    }
+
+    .brand-title {
+      width: fit-content;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+      font: 700 clamp(32px, 3vw, 42px)/1.15 var(--display);
+      letter-spacing: -.035em;
     }
 
     .brand small {
       display: block;
-      margin-top: 8px;
       color: var(--muted);
-      font: 600 11px/1 var(--body);
-      letter-spacing: .18em;
+      font: 600 12px/1.6 var(--body);
+      letter-spacing: .08em;
       text-transform: uppercase;
     }
 
-    .brand {
-      font-style: italic;
-      text-decoration: underline 2px var(--accent);
-      text-underline-offset: 7px;
-    }
-
-    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .toolbar { display: flex; flex: 1 1 520px; min-width: 0; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
     .user-identity {
       display: inline-flex;
@@ -237,7 +242,7 @@
       margin: 0; max-width: 850px; font: 700 clamp(50px, 7.4vw, 94px)/1.15 var(--display);
       letter-spacing: -.055em; text-wrap: balance;
     }
-    h1 { font-style: italic; max-width: 760px; }
+    h1 { font-style: normal; max-width: 760px; }
     .progress { min-width: 125px; text-align: right; }
     .progress strong { display: block; font: 700 40px/1 var(--display); }
     .progress span { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
@@ -341,7 +346,7 @@
       .auth-credit { margin-top: 36px; }
       .auth-panel { padding: 28px 0 0; border-top: 1px solid var(--line); border-left: 0; }
       .topbar, .hero-head { align-items: flex-start; flex-direction: column; }
-      .toolbar { justify-content: flex-start; }
+      .toolbar { flex: 0 1 auto; width: 100%; justify-content: flex-start; }
       .days { overflow-x: auto; grid-template-columns: repeat(7, 86px); }
       .day { min-height: 78px; }
       .progress { text-align: left; }
@@ -431,7 +436,7 @@
 
   <main class="app" id="appRoot" hidden>
     <header class="topbar">
-      <div class="brand">TODAY / 今日<small>Daily intentions, clearly kept</small></div>
+      <div class="brand"><span class="brand-title">to do list</span><small>Daily intentions, clearly kept</small></div>
       <div class="toolbar">
         <span class="save-mode" id="saveMode" title="当前事项保存在登录账号的云端空间">CLOUD / 云端保存</span>
         <span class="user-identity" id="userIdentity"></span>

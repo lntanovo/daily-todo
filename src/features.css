@@ -1,5 +1,5 @@
 @import '../assets/fonts/wenkai/lxgwwenkai-regular.css';
-/* Warm Paper #f3ebdd / ink #24211d / cinnabar #c65432.
+/* Warm Paper #f3ebdd / ink #1f1c18 / cinnabar #b2492d.
    Source Han Serif for task titles; LXGW WenKai for dated notes.
    Existing layout, 8px spacing, 44px touch targets. User-supplied images only. */
 @font-face {
@@ -10,7 +10,7 @@
 }
 .task-title, .note-task-heading { font-family: 'Source Han Serif', 'Noto Serif CJK SC', serif; line-height: 1.55; }
 .daily-note, .note-input { font: 400 18px/1.65 'LXGW WenKai', 'KaiTi', serif; }
-.daily-note { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; color: #5b5449; }
+.daily-note { white-space: pre-wrap; overflow-wrap: anywhere; margin: 10px 0 0; color: #4d453c; }
 .note-trigger { display: block; min-height: 36px; padding: 6px 0; border: 0; background: transparent; color: var(--muted); font: 12px var(--body); cursor: pointer; text-align: left; }
 .note-trigger:hover { color: var(--accent); }
 .note-trigger:disabled { cursor: wait; opacity: .65; }
@@ -40,9 +40,37 @@
 #calendarButton { display: grid; place-items: center; }
 #calendarButton svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .page-background { position: fixed; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; z-index: -2; }
-body.has-background { background: transparent; isolation: isolate; }
-/* A lighter warm veil keeps text readable without washing out the user's image. */
-body.has-background::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: rgb(243 235 221 / .58); }
+body.has-background {
+  background: transparent; isolation: isolate;
+  --ink: #151310;
+  --muted: #29241f;
+  --accent: #872b17;
+  --priority-normal: #174d75;
+  --priority-urgent: #a12720;
+  --text-outline: -1px -1px 0 #fffaf1, 0 -1px 0 #fffaf1, 1px -1px 0 #fffaf1,
+    -1px 0 0 #fffaf1, 1px 0 0 #fffaf1,
+    -1px 1px 0 #fffaf1, 0 1px 0 #fffaf1, 1px 1px 0 #fffaf1;
+}
+body.has-background::before { display: none; }
+/* Text sits directly over the image with one consistent, light page veil. */
+body.has-background::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: rgb(243 235 221 / .40); }
+body.has-background .task-row:nth-child(even) { background: transparent; }
+/* A crisp glyph-only outline separates text from photo details without panels or blur. */
+body.has-background :is(.brand, .week-title, .day:not(.active), .hero-head,
+  .task-content, .note-trigger, .task-action, .toolbar .button:not(.primary), .save-mode,
+  .user-identity, .week-arrows, .empty, .storage-status, .migration-banner) {
+  text-shadow: var(--text-outline);
+}
+body.has-background :is(.brand small, .save-mode, .user-identity, .day-name,
+  .day-mark, .task-meta, .note-trigger, .progress span, .eyebrow) {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+body.has-background .week-title { font-size: 14px; font-weight: 600; line-height: 1.5; }
+body.has-background :is(.toolbar .button, .task-action) { font-weight: 600; }
+body.has-background .daily-note { color: var(--ink); }
+body.has-background :is(.button.primary, .day.active) { text-shadow: none; }
 .background-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 24px; }
 .background-option { min-height: 84px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; font: 14px var(--body); overflow: hidden; }
 .background-option[aria-pressed='true'] { border: 2px solid var(--accent); }
