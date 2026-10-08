@@ -133,5 +133,31 @@ export function setupAppearance({app,db,button,getUid,isBusy,setBusy,notify}) {
     draft={...saved};clearDraft();error.textContent=ready?'':'背景暂时无法读取，请关闭后重试。';
     markSelected();dialog.querySelector('[data-save]').disabled=!ready;dialog.showModal();
   });
-  return {load,reset(){version++;ready=false;clearTimeout(refreshTimer);saved=paper();savedUrl='';dialog.close();clearDraft();display();}};
+  async function exportBackground() {
+    if(saved.background_kind!=='upload'||!saved.background_value)return null;
+    const url=await resolveUrl(saved);
+    const response=await fetch(url);
+    if(!response.ok)throw new Error('自定义背景下载失败。');
+    const blob=await response.blob();
+    const extension=(saved.background_value.split('.').pop()||'bin').replace(/[^a-z0-9]/gi,'').toLowerCase()||'bin';
+    return {name:`background.${extension}`,bytes:new Uint8Array(await blob.arrayBuffer())};
+  }
+  async function importBackground(blob) {
+    const uid=getUid();if(!uid)throw new Error('登录已失效。');
+    const extension=/png/.test(blob.type)?'png':/webp/.test(blob.type)?'webp':/gif/.test(blob.type)?'gif':'jpg';
+    const key=`${uid}/${crypto.randomUUID()}.${extension}`;
+    await result(storage().upload(key,blob,{contentType:blob.type||'application/octet-stream',upsert:false}));
+    try {
+      await result(db.from('todo_preferences').upsert({background_kind:'upload',background_value:key,updated_at:new Date().toISOString()},{onConflict:'owner_id'}));
+    } catch(error) {
+      // An interrupted response may have committed the preference. Confirm before removing the upload.
+      try {
+        const rows=await result(db.from('todo_preferences').select('background_value'));
+        if(rows?.[0]?.background_value!==key)await cleanup(key);
+      } catch {notify('背景恢复结果暂时无法确认，请联网后核对背景设置。','error');}
+      throw error;
+    }
+    await load();
+  }
+  return {load,exportBackground,importBackground,reset(){version++;ready=false;clearTimeout(refreshTimer);saved=paper();savedUrl='';dialog.close();clearDraft();display();}};
 }

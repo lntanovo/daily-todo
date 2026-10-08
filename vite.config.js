@@ -11,6 +11,7 @@ export default defineConfig({
         try {
           let html = await readFile(new URL('./index.html', import.meta.url), 'utf8');
           html = html.replace('from "@cloudbase/js-sdk"', 'from "/tests/fake-cloudbase.js"')
+            .replace('await import("@cloudbase/js-sdk")', 'await import("/tests/fake-cloudbase.js")')
             .replaceAll('"./src/', '"/src/')
             .replace('const configReady = Boolean(cloudConfig.env && cloudConfig.accessKey);', 'const configReady = true;')
             .replace('<body>', '<body><aside style="padding:10px;text-align:center;background:#fff2bd;color:#24211d;font:14px sans-serif">本地交互预览 · 示例数据，未连接云端</aside>');

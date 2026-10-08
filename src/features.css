@@ -4,9 +4,150 @@
    Existing layout, 8px spacing, 44px touch targets. User-supplied images only. */
 @font-face {
   font-family: 'Source Han Serif';
-  src: url('../assets/fonts/source-han-serif-cn.woff2') format('woff2');
+  src: url('../assets/fonts/source-han-serif-cn-4e00-51ff.woff2') format('woff2');
   font-weight: 200 900;
   font-display: swap;
+  unicode-range: U+4E00-51FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-5200-55ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+5200-55FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-5600-59ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+5600-59FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-5a00-5dff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+5A00-5DFF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-5e00-61ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+5E00-61FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-6200-65ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+6200-65FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-6600-69ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+6600-69FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-6a00-6dff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+6A00-6DFF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-6e00-71ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+6E00-71FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-7200-75ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+7200-75FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-7600-79ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+7600-79FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-7a00-7dff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+7A00-7DFF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-7e00-81ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+7E00-81FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-8200-85ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+8200-85FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-8600-89ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+8600-89FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-8a00-8dff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+8A00-8DFF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-8e00-91ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+8E00-91FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-9200-95ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+9200-95FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-9600-99ff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+9600-99FF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-9a00-9dff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+9A00-9DFF;
+}
+@font-face {
+  font-family: 'Source Han Serif';
+  src: url('../assets/fonts/source-han-serif-cn-9e00-9fff.woff2') format('woff2');
+  font-weight: 200 900;
+  font-display: swap;
+  unicode-range: U+9E00-9FFF;
 }
 .task-title, .note-task-heading { font-family: 'Source Han Serif', 'Noto Serif CJK SC', serif; line-height: 1.55; }
 .daily-note, .note-input { font: 400 18px/1.65 'LXGW WenKai', 'KaiTi', serif; }
@@ -47,20 +188,11 @@ body.has-background {
   --accent: #872b17;
   --priority-normal: #174d75;
   --priority-urgent: #a12720;
-  --text-outline: -1px -1px 0 #fffaf1, 0 -1px 0 #fffaf1, 1px -1px 0 #fffaf1,
-    -1px 0 0 #fffaf1, 1px 0 0 #fffaf1,
-    -1px 1px 0 #fffaf1, 0 1px 0 #fffaf1, 1px 1px 0 #fffaf1;
 }
 body.has-background::before { display: none; }
 /* Text sits directly over the image with one consistent, light page veil. */
 body.has-background::after { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: rgb(243 235 221 / .40); }
 body.has-background .task-row:nth-child(even) { background: transparent; }
-/* A crisp glyph-only outline separates text from photo details without panels or blur. */
-body.has-background :is(.brand, .focus-home, .hero-head,
-  .task-content, .note-trigger, .task-action, .toolbar .button:not(.primary), .save-mode,
-  .user-identity, .empty, .storage-status) {
-  text-shadow: var(--text-outline);
-}
 body.has-background :is(.brand small, .save-mode, .user-identity,
   .task-meta, .note-trigger, .progress span, .eyebrow) {
   font-size: 13px;
@@ -69,7 +201,6 @@ body.has-background :is(.brand small, .save-mode, .user-identity,
 }
 body.has-background :is(.toolbar .button, .task-action) { font-weight: 600; }
 body.has-background .daily-note { color: var(--ink); }
-body.has-background .button.primary { text-shadow: none; }
 .background-options { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin-top: 24px; }
 .background-option { min-height: 84px; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); cursor: pointer; font: 14px var(--body); overflow: hidden; }
 .background-option[aria-pressed='true'] { border: 2px solid var(--accent); }
@@ -101,8 +232,6 @@ textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent);
 .quote-footer { display: flex; align-items: center; gap: 12px; min-height: 36px; margin-top: 10px; color: var(--muted); font-size: 12px; }
 .quote-next { min-height: 36px; padding: 0 2px; border: 0; border-bottom: 1px solid currentColor; background: transparent; color: var(--accent); cursor: pointer; font-size: 12px; font-weight: 700; }
 .task-focus { color: var(--accent); font-weight: 700; }
-body.has-background :is(.today-date, .selected-date-notice, #headline, .quote-footer, .quote-next, .task-focus) { text-shadow: var(--text-outline); }
-body.has-background :is(.settings-drawer, dialog) :is(.today-date, .selected-date-notice, #headline, .quote-footer, .quote-next, .task-focus) { text-shadow: none; }
 
 @media(max-width:720px) {
   .date-strip { padding-top: 18px; }

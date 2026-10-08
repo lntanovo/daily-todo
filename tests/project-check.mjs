@@ -28,7 +28,11 @@ const required = [
   ["动效开关", /id="motionButton"[^>]*aria-pressed="true"/],
   ["独立宠物开关", /id="petButton"[^>]*aria-pressed="true"/],
   ["设置抽屉", /id="settingsDrawer"[^>]*role="dialog"/],
-  ["首页专注入口", /id="focusHomeMount"/],
+  ["三视图主导航", /data-view="schedule"[\s\S]*data-view="focus"[\s\S]*data-view="profile"/],
+  ["独立专注页", /id="focusPageMount"/],
+  ["个人页", /id="profileView"/],
+  ["任务导入", /id="taskImportButton"/],
+  ["任务导出", /id="taskExportButton"/],
   ["可切换句子", /id="quoteNextButton"/],
   ["日历入口", /id="calendarButton"/],
   ["个人背景入口", /id="backgroundButton"/],
@@ -49,6 +53,11 @@ const migration = await readFile(new URL("../cloudbase/migrations/20260918160000
 const focusCore = await readFile(new URL("../src/focus-core.js", import.meta.url), "utf8");
 const dateDisplay = await readFile(new URL("../src/date-display.js", import.meta.url), "utf8");
 const quotes = await readFile(new URL("../src/quotes.js", import.meta.url), "utf8");
+const navigation = await readFile(new URL("../src/navigation.js", import.meta.url), "utf8");
+const transfer = await readFile(new URL("../src/task-transfer.js", import.meta.url), "utf8");
+const transferCore = await readFile(new URL("../src/task-transfer-core.js", import.meta.url), "utf8");
+const profile = await readFile(new URL("../src/profile.js", import.meta.url), "utf8");
+const historyMigration = await readFile(new URL("../cloudbase/migrations/20260927120000_completion_history.sql", import.meta.url), "utf8");
 
 const failures = required.filter(([, pattern]) => !pattern.test(html));
 if (failures.length) {
@@ -117,7 +126,22 @@ if (!/Source Han Serif/.test(featureCss) || !/LXGW WenKai/.test(featureCss)) {
 }
 
 if (!/splitSegmentByShanghaiDate/.test(focusCore) || !/Asia\/Shanghai/.test(dateDisplay) || !/daily-todo\.quote\.v1/.test(quotes)) {
-  console.error("项目检查失败：v2.0 日期、语录或专注核心未完整接入。");
+  console.error("项目检查失败：日期、语录或专注核心未完整接入。");
+  process.exit(1);
+}
+
+if (!/hashchange/.test(navigation) || !/mammoth\.convertToHtml/.test(transfer) || !/Packer\.toBlob/.test(transfer)
+  || !/parseNumberedTasks/.test(transferCore) || !/todo_completion_history/.test(profile)) {
+  console.error("项目检查失败：三视图、任务导入导出或个人统计没有完整接入。");
+  process.exit(1);
+}
+
+if (!/CREATE TABLE public\.todo_completion_history/.test(historyMigration)
+  || !/sync_todo_completion_history/.test(historyMigration)
+  || !/sync_todo_schedule_completions/.test(historyMigration)
+  || !/ENABLE ROW LEVEL SECURITY/.test(historyMigration)
+  || !/CREATE POLICY todo_completion_history_select/.test(historyMigration)) {
+  console.error("项目检查失败：完成历史快照、同步触发器或 RLS 迁移不完整。");
   process.exit(1);
 }
 
@@ -136,7 +160,8 @@ if (!/\.companion-pet\s*\{[^}]*width:\s*84px;[^}]*height:\s*84px;/s.test(compani
   process.exit(1);
 }
 
-if (!/adryd325\/oneko\.js/.test(notices) || !/jhammann\/sakura/.test(notices) || !/MIT License/.test(notices)) {
+if (!/adryd325\/oneko\.js/.test(notices) || !/jhammann\/sakura/.test(notices)
+  || !/mwilliamson\/mammoth\.js/.test(notices) || !/dolanmiu\/docx/.test(notices) || !/MIT License/.test(notices)) {
   console.error("项目检查失败：开源来源或许可证说明不完整。");
   process.exit(1);
 }

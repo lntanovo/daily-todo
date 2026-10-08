@@ -3,6 +3,7 @@ import { mkdir, readFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { AlignmentType, Document, LevelFormat, Packer, Paragraph } from 'docx';
 
 // Uses an existing Playwright installation; never installs dependencies automatically.
 const runtime = process.env.PLAYWRIGHT_MODULE || 'C:/Users/lntano/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright/index.mjs';
@@ -40,11 +41,12 @@ async function chooseDate(year,month,day) {
 try {
   await page.goto(url);await waitReady();
   assert.equal(await page.locator('.toolbar > button').count(),2);
+  assert.equal(await page.locator('.app-nav-links [data-view]').count(),3);
+  assert.equal(await page.locator('[data-view="schedule"]').getAttribute('aria-current'),'page');
+  assert.equal(await page.locator('#focusView').isHidden(),true);
+  assert.equal(new URL(page.url()).hash,'#schedule');
   assert.equal(await page.locator('.brand-title').textContent(),'TO DO LIST');
   assert.equal(await page.locator('.brand small').count(),0);
-  const brandBox=await page.locator('.brand').boundingBox();
-  const focusHomeBox=await page.locator('.focus-home').boundingBox();
-  assert.ok(focusHomeBox.x>brandBox.x+brandBox.width-2);
   assert.ok(parseFloat(await page.locator('#fullDate').evaluate(node=>getComputedStyle(node).fontSize))>=24);
   assert.ok(parseFloat(await page.locator('#headline').evaluate(node=>getComputedStyle(node).fontSize))<=40);
   assert.equal(await page.locator('#days, #weekLabel, #prevWeek, #nextWeek').count(),0);
@@ -62,7 +64,45 @@ try {
   const settingsPosition=await page.locator('#settingsButton').evaluate(node=>({left:parseFloat(getComputedStyle(node).left),bottom:parseFloat(getComputedStyle(node).bottom)}));
   assert.ok(settingsPosition.left<=18&&settingsPosition.bottom<=18);
   assert.equal(await page.locator('#settingsDrawer').isHidden(),true);
-  check('compact header, lunar date, switchable words and accessible settings drawer');
+  check('three-view navigation, compact header, lunar date, switchable words and accessible settings drawer');
+  const importTitle=`浏览器导入测试 ${Date.now()}`;
+  await page.locator('#taskImportButton').click();
+  await page.locator('#transferText').fill(`1、${importTitle}\n  日期：${await page.locator('#transferDate').inputValue()}\n  优先级：紧急`);
+  await page.locator('#transferParse').click();
+  assert.match(await page.locator('#transferCount').textContent(),/将创建 1 条/);
+  await page.locator('#transferConfirm').click();await waitReady();
+  assert.equal(await page.locator('.task-title',{hasText:importTitle}).count(),1);
+  await page.locator('#taskExportButton').click();
+  const markdownDownload=page.waitForEvent('download');
+  await page.locator('#exportConfirm').click();
+  const markdown=await markdownDownload;
+  assert.match(markdown.suggestedFilename(),/\.md$/);
+  assert.match(await readFile(await markdown.path(),'utf8'),new RegExp(importTitle));
+  await page.locator('#taskExportButton').click();
+  await page.locator('input[name="exportFormat"][value="docx"]').check();
+  const wordDownload=page.waitForEvent('download');
+  await page.locator('#exportConfirm').click();
+  const word=await wordDownload;
+  const wordPath=await word.path();
+  assert.match(word.suggestedFilename(),/\.docx$/);
+  assert.equal((await readFile(wordPath)).subarray(0,2).toString(),'PK');
+  await page.locator('#taskImportButton').click();
+  await page.locator('#transferFile').setInputFiles({name:word.suggestedFilename(),mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',buffer:await readFile(wordPath)});
+  await page.waitForFunction(()=>document.querySelectorAll('.transfer-row').length||document.querySelector('#transferErrors')?.textContent);
+  assert.equal(await page.locator('#transferErrors').textContent(),'');
+  assert.ok(await page.locator('.transfer-row input[data-field="title"]').evaluateAll((inputs,title)=>inputs.some(input=>input.value===title),importTitle));
+  const roundTripIndex=await page.locator('.transfer-row input[data-field="title"]').evaluateAll((inputs,title)=>inputs.findIndex(input=>input.value===title),importTitle);
+  const roundTripRow=page.locator('.transfer-row').nth(roundTripIndex);
+  assert.equal(await roundTripRow.locator('[data-field="selected"]').isChecked(),false);
+  const automaticDoc=new Document({numbering:{config:[{reference:'tasks',levels:[{level:0,format:LevelFormat.DECIMAL,text:'%1.',alignment:AlignmentType.START,style:{paragraph:{indent:{left:720,hanging:260}}}}]}]},sections:[{children:[
+    new Paragraph({text:'Word 自动编号甲',numbering:{reference:'tasks',level:0}}),
+    new Paragraph({text:'Word 自动编号乙',numbering:{reference:'tasks',level:0}})
+  ]}]});
+  await page.locator('#transferFile').setInputFiles({name:'automatic-numbering.docx',mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',buffer:await Packer.toBuffer(automaticDoc)});
+  await page.waitForFunction(()=>document.querySelectorAll('.transfer-row').length===2);
+  assert.deepEqual(await page.locator('.transfer-row input[data-field="title"]').evaluateAll(inputs=>inputs.map(input=>input.value)),['Word 自动编号甲','Word 自动编号乙']);
+  await page.locator('.transfer-dialog[open] button[value="cancel"]').first().click();
+  check('numbered-text import, CloudBase save and reusable Markdown/Word round trip');
   await row.locator('.note-trigger').click();
   const text='今天完成了第一步。\n<img src=x onerror=alert(1)> 这只是文字';
   await page.locator('#noteContent').fill(text);
@@ -131,6 +171,8 @@ try {
   await page.waitForFunction(()=>!document.querySelector('#backgroundDialog').open);
   await page.reload();await waitReady();
   assert.equal(await page.locator('.page-background').isVisible(),true);
+  assert.equal(await page.locator('.app-nav').evaluate(node=>getComputedStyle(node).backgroundColor),'rgba(0, 0, 0, 0)');
+  assert.ok((await page.locator('.app-nav-mark, #fullDate, #headline, .task-title').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).textShadow))).every(value=>value==='none'));
   assert.equal(await page.evaluate(()=>window.__fixture.snapshot().todo_preferences[0].background_kind),'upload');
   check('background compression, invalid file, cancel, failed upload retry and persistence');
   const gif=Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7','base64');
@@ -147,10 +189,12 @@ try {
   assert.match(await row.locator('.task-title').evaluate(node=>getComputedStyle(node).fontFamily),/Source Han Serif/);
   assert.match(await note.evaluate(node=>getComputedStyle(node).fontFamily),/LXGW WenKai/);
   check('both requested font files load and apply');
-  await openSettings();
+  await page.locator('[data-view="focus"]').click();
+  await page.locator('#focusView').waitFor({state:'visible'});
+  assert.deepEqual(await page.locator('.focus-stage, .focus-control-panel').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor)),['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)']);
+  assert.equal(await page.locator('#focusClock').evaluate(node=>getComputedStyle(node).textShadow),'none');
   await page.locator('#focusMinutes').fill('1');
   await page.locator('#focusTask').selectOption('fixture-range');
-  await page.locator('#settingsClose').click();
   await page.locator('#focusStart').click();
   await page.locator('#focusMini').waitFor({state:'visible'});
   await page.locator('#focusPause').click();
@@ -161,11 +205,26 @@ try {
   await delay(1100);
   await page.locator('#focusEnd').click();
   assert.equal(await page.locator('#focusMini').isHidden(),true);
-  await openSettings();
   assert.match(await page.locator('#focusHistory').textContent(),/提前结束.+给自己的计划/);
-  await page.locator('#settingsClose').click();
+  await page.locator('[data-view="schedule"]').click();
   assert.match(await row.locator('.task-focus').textContent(),/专注/);
-  check('focus start, pause, resume, early end, history and task association');
+  check('independent focus view, pause, resume, early end, local history and task association');
+  if(await row.locator('.check').getAttribute('aria-pressed')!=='true'){await row.locator('.check').click();await waitReady();}
+  await page.locator('[data-view="profile"]').click();
+  await page.locator('#profileView').waitFor({state:'visible'});
+  await page.waitForFunction(()=>document.querySelectorAll('.heatmap-cell').length===365);
+  assert.deepEqual(await page.locator('.profile-summary > div').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor)),['rgba(0, 0, 0, 0)','rgba(0, 0, 0, 0)']);
+  assert.ok((await page.locator('.profile-summary strong, .profile-summary span').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).textShadow))).every(value=>value==='none'));
+  assert.deepEqual(await page.locator('.heatmap-legend i').evaluateAll(nodes=>nodes.map(node=>getComputedStyle(node).backgroundColor)),['rgb(235, 237, 240)','rgb(155, 233, 168)','rgb(64, 196, 99)','rgb(48, 161, 78)','rgb(33, 110, 57)']);
+  assert.ok(Number(await page.locator('#profileTotal').textContent())>=1);
+  await page.locator(`.heatmap-cell[data-date="${today[0]}-${String(today[1]).padStart(2,'0')}-${String(today[2]).padStart(2,'0')}"]`).click();
+  assert.match(await page.locator('#profileDetailList').textContent(),/给自己的计划/);
+  await page.goBack();
+  assert.equal(await page.locator('#scheduleView').isVisible(),true);
+  await page.goBack();
+  assert.equal(await page.locator('#focusView').isVisible(),true);
+  await page.locator('[data-view="schedule"]').click();
+  check('365-day CloudBase completion heatmap, details and browser history navigation');
   await mkdir(new URL('./artifacts/',import.meta.url),{recursive:true});
   await page.screenshot({path:fileURLToPath(new URL('./artifacts/features-desktop.png',import.meta.url)),fullPage:true});
   await page.locator('#calendarButton').click();

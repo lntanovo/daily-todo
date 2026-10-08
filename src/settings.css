@@ -47,7 +47,6 @@ body.settings-open { overflow: hidden; }
 .quote-library { min-height: 44px; }
 .custom-quote-input { min-height: 78px; resize: vertical; }
 .quote-custom-button { width: 100%; margin-top: 8px; border-radius: 7px; }
-body.has-background .settings-drawer :is(h2, h3, span, p, label, button, strong, small) { text-shadow: none; }
 @media (max-width: 720px) {
   .settings-trigger { left: 8px; bottom: 8px; }
   .settings-drawer { width: min(100vw, 430px); }

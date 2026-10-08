@@ -407,35 +407,27 @@
   </section>
 
   <main class="app" id="appRoot" hidden>
-    <header class="topbar">
-      <div class="brand"><span class="brand-title">TO DO LIST</span></div>
-      <section class="focus-home" aria-label="番茄钟"><div id="focusHomeMount"></div></section>
-      <div class="toolbar">
-        <button class="button" id="todayButton" type="button">回到今天</button>
-        <button class="button primary" id="addButton" type="button">＋ 新建事项</button>
-      </div>
-    </header>
+    <nav class="app-nav" aria-label="主导航"><span class="app-nav-mark">TO DO LIST</span><div class="app-nav-links"><button type="button" data-view="schedule">日程</button><button type="button" data-view="focus">专注</button><button type="button" data-view="profile">个人</button></div></nav>
     <p id="storageStatus" class="storage-status" role="status" hidden></p>
-
-    <section class="date-strip" aria-label="今天与日期选择">
-      <div>
-        <p class="today-date" id="fullDate"></p>
-        <p class="selected-date-notice" id="selectedDateNotice" hidden></p>
-      </div>
-      <button class="icon-button" id="calendarButton" type="button" aria-label="打开日历，选择年月日" title="选择日期"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/></svg></button>
-    </section>
-
-    <section class="hero">
-      <div class="hero-head">
-        <div class="quote-block">
-          <h1 id="headline"></h1>
-          <div class="quote-footer"><span id="quoteMeta" hidden></span><button class="quote-next" id="quoteNextButton" type="button">换一句</button></div>
+    <section class="view-panel" data-view-panel="schedule" id="scheduleView">
+      <header class="topbar">
+        <div class="brand"><span class="brand-title">TO DO LIST</span></div>
+        <div class="toolbar">
+          <button class="button" id="todayButton" type="button">回到今天</button>
+          <button class="button primary" id="addButton" type="button">＋ 新建事项</button>
         </div>
-        <div class="progress" aria-live="polite"><strong id="progressValue">0/0</strong><span id="progressLabel">DONE TODAY / 今日完成</span><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div></div>
-      </div>
+      </header>
+      <form class="quick-add" id="quickAddForm"><label for="quickTaskTitle">快速录入</label><input id="quickTaskTitle" maxlength="160" autocomplete="off" placeholder="写下事项，按 Enter 加到当前日期"><select id="quickTemplate" aria-label="选择任务模板"><option value="">不使用模板</option></select><button class="button primary" type="submit">添加</button></form>
+      <div class="schedule-tools"><button class="button" id="taskImportButton" type="button">导入任务</button><button class="button" id="taskExportButton" type="button">导出任务</button><button class="button" id="saveTemplateButton" type="button">保存模板</button><button class="button" id="manageTemplatesButton" type="button">管理模板</button></div>
+      <section class="date-strip" aria-label="今天与日期选择">
+        <div><p class="today-date" id="fullDate"></p><p class="selected-date-notice" id="selectedDateNotice" hidden></p></div>
+        <button class="icon-button" id="calendarButton" type="button" aria-label="打开日历，选择年月日" title="选择日期"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 11h18M8 15h2M14 15h2"/></svg></button>
+      </section>
+      <section class="hero"><div class="hero-head"><div class="quote-block"><h1 id="headline"></h1><div class="quote-footer"><span id="quoteMeta" hidden></span><button class="quote-next" id="quoteNextButton" type="button">换一句</button></div></div><div class="progress" aria-live="polite"><strong id="progressValue">0/0</strong><span id="progressLabel">DONE TODAY / 今日完成</span><div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div></div></div></section>
+      <section class="list" id="taskList" aria-label="所选日期的待办事项"></section>
     </section>
-
-    <section class="list" id="taskList" aria-label="所选日期的待办事项"></section>
+    <section class="view-panel" data-view-panel="focus" id="focusView" hidden><div id="focusPageMount"></div></section>
+    <section class="view-panel" data-view-panel="profile" id="profileView" hidden></section>
   </main>
 
   <button class="icon-button settings-trigger" id="settingsButton" type="button" aria-label="打开设置" aria-controls="settingsDrawer" aria-expanded="false" hidden>
@@ -446,10 +438,10 @@
     <div class="settings-inner">
       <div class="settings-heading"><div><h2 id="settingsTitle">设置</h2><small>SETTINGS</small></div><button class="icon-button" id="settingsClose" type="button" aria-label="关闭设置">×</button></div>
       <section class="settings-section"><h3>账号与同步 <small>ACCOUNT</small></h3><div class="settings-stack"><span class="save-mode" id="saveMode" title="当前事项保存在登录账号的云端空间">CLOUD / 云端保存</span><span class="user-identity" id="userIdentity"></span><button class="button" id="logoutButton" type="button">退出登录</button></div></section>
-      <section class="settings-section"><h3>专注设置与统计 <small>FOCUS DETAILS</small></h3><div id="focusDetailsMount"></div></section>
       <section class="settings-section"><h3>外观与陪伴 <small>APPEARANCE</small></h3><div class="settings-stack"><button class="button" id="backgroundButton" type="button">背景 / BACKGROUND</button><button class="button" id="motionButton" type="button" aria-pressed="true">花瓣动效 / MOTION ON</button><button class="button" id="petButton" type="button" aria-pressed="true">宠物 / PET ON</button></div></section>
       <section class="settings-section"><h3>句子 <small>WORDS</small></h3><div class="settings-choice" id="quoteMode"></div><label class="quote-setting-label" for="quoteLibrary">句库选择</label><select class="quote-library" id="quoteLibrary"></select><label class="quote-setting-label" for="customQuote">我的句子（最多 80 字）</label><textarea class="custom-quote-input" id="customQuote" maxlength="80" rows="3" placeholder="写一句今天想看到的话"></textarea><button class="button quote-custom-button" id="useCustomQuote" type="button">使用我的句子</button></section>
       <section class="settings-section" id="dataSettings" hidden><h3>数据 <small>DATA</small></h3><p class="settings-data-copy" id="migrationCopy"></p><button class="button primary" id="importButton" type="button">复制本机事项到云端</button></section>
+      <section class="settings-section"><h3>备份与恢复 <small>BACKUP</small></h3><p class="settings-data-copy">导出包含任务、完成记录、补充、专注、模板、偏好和自定义背景的校验 ZIP。</p><div class="settings-stack"><button class="button" id="backupExportButton" type="button">导出完整备份</button><button class="button" id="backupImportButton" type="button">校验并恢复备份</button><button class="button" id="trashButton" type="button">最近删除</button><input id="backupFile" type="file" accept=".zip,application/zip" hidden></div></section>
     </div>
   </aside>
   <div class="focus-mini" id="focusMini" hidden></div>
@@ -474,6 +466,7 @@
         <div class="type-toggle">
           <label><input type="radio" name="taskType" value="single" checked><span>单日事项</span></label>
           <label><input type="radio" name="taskType" value="range"><span>连续多日任务</span></label>
+          <label><input type="radio" name="taskType" value="recurring"><span>重复任务</span></label>
         </div>
       </div>
       <div class="field" id="singleDateField">
@@ -485,6 +478,13 @@
         <div class="field"><label for="endDate">结束 / END</label><input id="endDate" type="date" min="0001-01-01" max="9999-12-31"></div>
       </div>
       <p class="form-hint" id="rangeHint" hidden>起止日期当天也包含在内，每天分别打勾。编辑内容或日期会修改整条共同任务。</p>
+      <div class="recurrence-fields" id="recurrenceFields" hidden>
+        <div class="field"><label for="recurrenceFrequency">重复频率 / REPEAT</label><select id="recurrenceFrequency"><option value="weekly">每周</option><option value="monthly">每月</option></select></div>
+        <fieldset class="weekday-field" id="weekdayField"><legend>每周几</legend><div class="weekday-options"><label><input type="checkbox" value="1">一</label><label><input type="checkbox" value="2">二</label><label><input type="checkbox" value="3">三</label><label><input type="checkbox" value="4">四</label><label><input type="checkbox" value="5">五</label><label><input type="checkbox" value="6">六</label><label><input type="checkbox" value="7">日</label></div></fieldset>
+        <div class="field" id="monthDayField" hidden><label for="recurrenceMonthDay">每月几号</label><input id="recurrenceMonthDay" type="number" min="1" max="31" value="1"></div>
+        <div class="date-range"><div class="field"><label for="recurrenceStart">开始 / START</label><input id="recurrenceStart" type="date"></div><div class="field"><label for="recurrenceEnd">结束（可选）/ END</label><input id="recurrenceEnd" type="date"></div></div>
+        <p class="form-hint">每月 29—31 日在没有该日期的月份自动跳过，不提前生成任务。</p>
+      </div>
       <div class="field">
         <label>每日完成时间 / DAILY TIME（可选）</label>
         <div class="time-range">
@@ -501,8 +501,11 @@
     </form>
   </dialog>
 
+  <dialog id="trashDialog" aria-labelledby="trashTitle"><div class="dialog-inner"><div class="feature-heading"><h2 id="trashTitle">最近删除 <small>TRASH</small></h2><button class="icon-button" id="trashClose" type="button" aria-label="关闭">×</button></div><p class="form-hint">这里保留已删除事项，可随时恢复。</p><div class="trash-list" id="trashList"></div></div></dialog>
+  <dialog id="templateDialog" aria-labelledby="templateTitle"><div class="dialog-inner"><div class="feature-heading"><h2 id="templateTitle">任务模板 <small>TEMPLATES</small></h2><button class="icon-button" id="templateClose" type="button" aria-label="关闭">×</button></div><p class="form-hint">模板只保存内容、优先级和时间；使用时套用到当前查看日期。</p><div class="trash-list" id="templateList"></div></div></dialog>
+  <div class="undo-toast" id="undoToast" role="status" hidden><span id="undoText"></span><button type="button" id="undoButton">撤销</button></div>
+
   <script type="module">
-    import cloudbase from "@cloudbase/js-sdk";
     import { setupRegistration } from "./src/registration.js";
     import { setupCompanion } from "./src/companion.js";
     import { setupCalendar } from "./src/calendar.js";
@@ -513,10 +516,13 @@
     import { setupSettings } from "./src/settings.js";
     import { setupFocus } from "./src/focus.js";
     import { formatFocusDuration } from "./src/focus-core.js";
+    import { setupNavigation } from "./src/navigation.js";
+    import { completionKey, taskAppearsOn } from "./src/recurrence-core.js";
     import "./src/companion.css";
     import "./src/features.css";
     import "./src/settings.css";
     import "./src/focus.css";
+    import "./src/app-shell.css";
 
     const cloudConfig = {
       env: import.meta.env.VITE_CLOUDBASE_ENV_ID,
@@ -525,9 +531,14 @@
       auth: { detectSessionInUrl: true }
     };
     const configReady = Boolean(cloudConfig.env && cloudConfig.accessKey);
-    const cloudApp = configReady ? cloudbase.init(cloudConfig) : null;
-    const auth = cloudApp?.auth || null;
-    const db = typeof cloudApp?.rdb === "function" ? cloudApp.rdb() : null;
+    let cloudApp = null;
+    let cloudDb = null;
+    let auth = null;
+    const db = {
+      from(...args) { if (!cloudDb) throw new Error("CloudBase PostgreSQL 客户端未就绪。"); return cloudDb.from(...args); },
+      rpc(...args) { if (!cloudDb) throw new Error("CloudBase PostgreSQL 客户端未就绪。"); return cloudDb.rpc(...args); }
+    };
+    const appFacade = { get storage() { if (!cloudApp?.storage) throw new Error("CloudBase 存储客户端未就绪。"); return cloudApp.storage; } };
 
     // STORAGE / 旧键只用于一次性本机数据迁移，新事项写入 CloudBase PG。
     const STORAGE = {
@@ -545,6 +556,8 @@
       selectedDate: shanghaiTodayKey(),
       todayKey: shanghaiTodayKey(),
       tasks: [],
+      recurrences: new Map(),
+      templates: [],
       completions: {},
       session: null,
       displayName: "",
@@ -557,13 +570,42 @@
     const companion = setupCompanion({ motionButton: el("motionButton"), petButton: el("petButton") });
     const taskDialog = el("taskDialog");
     const notes = setupDailyNotes({ db, getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, onChange: renderTasks });
-    const appearance = setupAppearance({ app: cloudApp, db, button: el("backgroundButton"), getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, notify: showStorageStatus });
+    const appearance = setupAppearance({ app: appFacade, db, button: el("backgroundButton"), getUid: sessionUid, isBusy: () => state.busy, setBusy: setAppBusy, notify: showStorageStatus });
     const quotes = setupQuotes({ textElement: el("headline"), metaElement: el("quoteMeta"), nextButton: el("quoteNextButton"), modeContainer: el("quoteMode"), librarySelect: el("quoteLibrary"), customInput: el("customQuote"), customButton: el("useCustomQuote"), getUid: sessionUid });
+    let navigation;
     const focus = setupFocus({
-      mount: el("focusHomeMount"), detailsMount: el("focusDetailsMount"), miniMount: el("focusMini"), getUid: sessionUid,
-      getTasks: () => state.tasks, notify: showStorageStatus, onExpand: settings.open,
+      mount: el("focusPageMount"), miniMount: el("focusMini"), db, cloudResult, getUid: sessionUid,
+      getTasks: () => state.tasks.filter(task => !task.deletedAt), notify: showStorageStatus, onExpand: () => navigation.go("focus"),
       onHistoryChange: () => { if (state.session) renderTasks(); }
     });
+    let profile = { load: async () => {}, reset() {}, invalidate() {} };
+    let profilePromise;
+    async function ensureProfile() {
+      if (!profilePromise) profilePromise = import("./src/profile.js").then(({ setupProfile }) => {
+        profile = setupProfile({ mount: el("profileView"), db, getUsername: sessionLabel, cloudResult });
+        return profile;
+      });
+      return profilePromise;
+    }
+    navigation = setupNavigation({
+      root: el("appRoot"), buttons: [...document.querySelectorAll("[data-view]")], panels: [...document.querySelectorAll("[data-view-panel]")],
+      onChange: view => { if (view === "profile" && state.session) void ensureProfile().then(instance => instance.load()); }
+    });
+    let transfer = { close() {} };
+    let transferPromise;
+    async function ensureTransfer() {
+      if (!transferPromise) transferPromise = import("./src/task-transfer.js").then(({ setupTaskTransfer }) => {
+        transfer = setupTaskTransfer({ importButton: el("taskImportButton"), exportButton: el("taskExportButton"), getSelectedDate: () => state.selectedDate,
+          getTasks: () => state.tasks.filter(task => !task.deletedAt).map(task => task.type === "recurring" ? { ...task, recurrence: state.recurrences.get(task.id) } : task), getCompletions: () => state.completions, createTasks: createImportedTasks, notify: showStorageStatus });
+        return transfer;
+      });
+      return transferPromise;
+    }
+    for (const id of ["taskImportButton", "taskExportButton"]) el(id).addEventListener("click", async event => {
+      if (transferPromise) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      await ensureTransfer(); el(id).click();
+    }, { once: true, capture: true });
     el("backgroundButton").addEventListener("click", () => settings.close(), { capture: true });
     setupCalendar({ button: el("calendarButton"), getSelectedDate: () => state.selectedDate, countTasks: date => tasksFor(date).length, onSelect: date => {
       state.selectedDate = date; render();
@@ -675,7 +717,8 @@
         start_time: task.startTime || null,
         end_time: task.endTime || null,
         priority: task.priority,
-        created_at: task.createdAt
+        created_at: task.createdAt,
+        deleted_at: task.deletedAt || null
       };
     }
     function taskInsertRow(task) {
@@ -695,12 +738,26 @@
         endTime: row.end_time ? String(row.end_time).slice(0, 5) : null,
         createdAt: row.created_at || new Date().toISOString()
       };
+      task.deletedAt = row.deleted_at || null;
       if (row.type === "single") task.date = String(row.task_date).slice(0, 10);
-      else {
+      else if (row.type === "range") {
         task.startDate = String(row.start_date).slice(0, 10);
         task.endDate = String(row.end_date).slice(0, 10);
       }
       return task;
+    }
+    function recurrenceFromRow(row) {
+      return {
+        task_id: String(row.task_id), frequency: row.frequency,
+        weekdays: Array.isArray(row.weekdays) ? row.weekdays.map(Number) : null,
+        month_day: row.month_day == null ? null : Number(row.month_day),
+        start_date: String(row.start_date).slice(0, 10),
+        end_date: row.end_date ? String(row.end_date).slice(0, 10) : null
+      };
+    }
+    function recurrenceRow(rule) {
+      return { task_id: rule.task_id, frequency: rule.frequency, weekdays: rule.frequency === "weekly" ? rule.weekdays : null,
+        month_day: rule.frequency === "monthly" ? rule.month_day : null, start_date: rule.start_date, end_date: rule.end_date || null, updated_at: new Date().toISOString() };
     }
     function completionRecord(key, taskList) {
       const splitAt = key.indexOf(":");
@@ -718,9 +775,11 @@
     }
     async function loadCloudState() {
       requireCloudSession();
-      const [taskRows, completionRows] = await Promise.all([
+      const [taskRows, completionRows, recurrenceRows, templateRows] = await Promise.all([
         cloudResult(db.from("todo_tasks").select("*").order("created_at", { ascending: true })),
-        cloudResult(db.from("todo_daily_completions").select("*"))
+        cloudResult(db.from("todo_daily_completions").select("*")),
+        cloudResult(db.from("todo_task_recurrences").select("*")),
+        cloudResult(db.from("todo_task_templates").select("*").order("updated_at", { ascending: false }))
       ]);
       const tasks = Array.isArray(taskRows) ? taskRows.map(taskFromRow) : [];
       const taskById = new Map(tasks.map(task => [task.id, task]));
@@ -734,24 +793,25 @@
       }
       state.tasks = tasks;
       state.completions = completions;
+      state.recurrences = new Map((Array.isArray(recurrenceRows) ? recurrenceRows : []).map(row => {
+        const rule = recurrenceFromRow(row); return [rule.task_id, rule];
+      }));
+      state.templates = Array.isArray(templateRows) ? templateRows : [];
+      renderTemplates();
     }
     function setAppBusy(busy) {
       state.busy = busy;
       el("appRoot").setAttribute("aria-busy", String(busy));
       document.querySelectorAll("#appRoot button, #taskDialog button").forEach(button => { button.disabled = busy; });
     }
-    async function save(tasks, completions) {
+    async function save(tasks, completions, recurrences = state.recurrences) {
       if (state.busy) return false;
       try {
         requireCloudSession();
         setAppBusy(true);
         const oldById = new Map(state.tasks.map(task => [task.id, task]));
         const nextById = new Map(tasks.map(task => [task.id, task]));
-        const deletedIds = new Set(state.tasks.filter(task => !nextById.has(task.id)).map(task => task.id));
-
-        for (const taskId of deletedIds) {
-          await cloudResult(db.from("todo_tasks").delete().eq("id", taskId));
-        }
+        const removedIds = new Set(state.tasks.filter(task => !nextById.has(task.id)).map(task => task.id));
         for (const task of tasks) {
           const previous = oldById.get(task.id);
           if (!previous) {
@@ -760,13 +820,23 @@
             await cloudResult(db.from("todo_tasks").update(taskUpdateRow(task)).eq("id", task.id));
           }
         }
+        for (const task of tasks) {
+          const rule = recurrences.get(task.id);
+          const previousRule = state.recurrences.get(task.id);
+          if (task.type === "recurring" && rule) {
+            if (!previousRule) await cloudResult(db.from("todo_task_recurrences").insert(recurrenceRow(rule)));
+            else if (JSON.stringify(previousRule) !== JSON.stringify(rule)) await cloudResult(db.from("todo_task_recurrences").update(recurrenceRow(rule)).eq("task_id", task.id));
+          } else if (previousRule) {
+            await cloudResult(db.from("todo_task_recurrences").delete().eq("task_id", task.id));
+          }
+        }
 
         const oldKeys = new Set(Object.keys(state.completions).filter(key => state.completions[key]));
         const nextKeys = new Set(Object.keys(completions).filter(key => completions[key]));
         for (const key of oldKeys) {
           if (nextKeys.has(key)) continue;
           const record = completionRecord(key, state.tasks);
-          if (!record || deletedIds.has(record.task_id)) continue;
+          if (!record || removedIds.has(record.task_id)) continue;
           await cloudResult(db.from("todo_daily_completions").delete()
             .eq("task_id", record.task_id).eq("completion_date", record.completion_date));
         }
@@ -777,8 +847,8 @@
           await cloudResult(db.from("todo_daily_completions").insert(record));
         }
 
-        state.tasks = tasks;
-        state.completions = completions;
+        await loadCloudState();
+        profile.invalidate();
         showStorageStatus("");
         return true;
       } catch (error) {
@@ -800,9 +870,7 @@
       date.setUTCHours(0, 0, 0, 0);
       return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
     }
-    function appearsOn(task, date) {
-      return task.type === "single" ? task.date === date : task.startDate <= date && task.endDate >= date;
-    }
+    function appearsOn(task, date) { return taskAppearsOn({ ...task, deleted_at: task.deletedAt }, date, state.recurrences); }
     function tasksFor(date) {
       return state.tasks.filter(task => appearsOn(task, date)).sort((a, b) => {
         if (a.priority !== b.priority) return a.priority === "urgent" ? -1 : 1;
@@ -810,7 +878,6 @@
         return String(a.createdAt).localeCompare(String(b.createdAt));
       });
     }
-    function completionKey(task, date) { return task.type === "range" ? `${task.id}:${date}` : task.id; }
     function isDone(task, date) { return Boolean(state.completions[completionKey(task, date)]); }
 
     // VIEW / 重绘后保留任务按钮焦点；日期选择统一由日历负责。
@@ -836,8 +903,8 @@
         const focusSeconds = focus.getTaskSeconds(task.id, state.selectedDate);
         return `<article class="task-row priority-${task.priority} ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
         <button class="check" data-action="toggle" aria-pressed="${isDone(task, state.selectedDate)}"></button>
-        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : "ONE DAY"}</span>${focusSeconds ? `<span class="task-focus">专注 ${formatFocusDuration(focusSeconds)}</span>` : ""}</div></div>
-        <div class="task-actions"><button class="task-action" data-action="edit" aria-label="编辑">编辑</button><button class="task-action delete" data-action="delete" aria-label="删除">删除</button></div>
+        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : task.type === "recurring" ? "重复任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : task.type === "recurring" ? (state.recurrences.get(task.id)?.frequency === "monthly" ? `MONTHLY · ${state.recurrences.get(task.id)?.month_day} 日` : "WEEKLY") : "ONE DAY"}</span>${focusSeconds ? `<span class="task-focus">专注 ${formatFocusDuration(focusSeconds)}</span>` : ""}</div></div>
+        <div class="task-actions"><button class="task-action task-focus-action" data-action="focus" aria-label="关联此任务开始专注">专注</button><button class="task-action" data-action="template" aria-label="保存为模板">模板</button><button class="task-action" data-action="edit" aria-label="编辑">编辑</button><button class="task-action delete" data-action="delete" aria-label="删除">删除</button></div>
       </article>`; }).join("");
       document.querySelectorAll(".task-row").forEach((row, index) => {
         row.querySelector(".task-title").textContent = items[index].title;
@@ -865,13 +932,115 @@
           }
         }
       }
-      if (action === "edit") openDialog(task);
-      if (action === "delete" && confirm(`删除“${task.title}”？该任务所有日期的完成记录和补充也会删除。`)) {
-        const tasks = state.tasks.filter(item => item.id !== task.id);
-        const completions = { ...state.completions };
-        Object.keys(completions).filter(key => key === task.id || key.startsWith(task.id + ":")).forEach(key => delete completions[key]);
-        if (await save(tasks, completions)) { render(); el("addButton").focus(); }
+      if (action === "focus") {
+        focus.selectTask(task.id);
+        navigation.go("focus");
       }
+      if (action === "edit") openDialog(task);
+      if (action === "template") void saveTemplate(task);
+      if (action === "delete") {
+        const tasks = state.tasks.map(item => item.id === task.id ? { ...item, deletedAt: new Date().toISOString() } : item);
+        if (await save(tasks, state.completions)) { render(); showUndo(task.id, task.title); el("addButton").focus(); }
+      }
+    }
+
+    let undoTimer = 0;
+    function showUndo(taskId, title) {
+      clearTimeout(undoTimer);
+      el("undoText").textContent = `“${title}”已移到最近删除`;
+      el("undoToast").dataset.taskId = taskId; el("undoToast").hidden = false;
+      undoTimer = setTimeout(() => { el("undoToast").hidden = true; }, 8000);
+    }
+    async function restoreTask(taskId) {
+      const tasks = state.tasks.map(task => task.id === taskId ? { ...task, deletedAt: null } : task);
+      if (await save(tasks, state.completions)) { el("undoToast").hidden = true; render(); renderTrash(); showStorageStatus("事项已恢复。", "success"); }
+    }
+    function renderTrash() {
+      const items = state.tasks.filter(task => task.deletedAt).sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt)));
+      el("trashList").innerHTML = items.length ? items.map(task => `<div class="trash-row" data-id="${task.id}"><span></span><small>${new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", dateStyle: "medium", timeStyle: "short" }).format(new Date(task.deletedAt))}</small><button class="button" type="button">恢复</button></div>`).join("") : `<p class="form-hint">最近没有删除事项。</p>`;
+      el("trashList").querySelectorAll(".trash-row").forEach((row, index) => {
+        row.querySelector("span").textContent = items[index].title;
+        row.querySelector("button").addEventListener("click", () => { void restoreTask(items[index].id); });
+      });
+    }
+
+    function renderTemplates() {
+      const selected = el("quickTemplate").value;
+      el("quickTemplate").replaceChildren(new Option("不使用模板", ""), ...state.templates.map(template => new Option(template.name, template.id)));
+      if (state.templates.some(template => template.id === selected)) el("quickTemplate").value = selected;
+    }
+    async function saveTemplate(task) {
+      if (!state.session || state.busy || !task?.title?.trim()) return;
+      const name = prompt("给这个模板起个名字：", task.title.trim().slice(0, 20));
+      if (!name || !name.trim()) return;
+      try {
+        const row = { id: crypto.randomUUID(), name: name.trim().slice(0, 80), title: task.title.trim().slice(0, 160),
+          priority: task.priority === "urgent" ? "urgent" : "normal", start_time: task.startTime || null, end_time: task.endTime || null, updated_at: new Date().toISOString() };
+        await cloudResult(db.from("todo_task_templates").insert(row));
+        await loadCloudState(); renderTemplateDialog(); showStorageStatus("模板已保存，可在快速录入中使用。", "success");
+      } catch (error) { showStorageStatus(`模板保存失败：${messageOf(error)}`); }
+    }
+    function renderTemplateDialog() {
+      const list = el("templateList");
+      list.replaceChildren();
+      if (!state.templates.length) { const empty = document.createElement("p"); empty.className = "form-hint"; empty.textContent = "还没有模板。可以从事项右侧的“模板”按钮保存。"; list.append(empty); return; }
+      for (const template of state.templates) {
+        const row = document.createElement("div"); row.className = "template-row";
+        const details = document.createElement("span"); details.textContent = `${template.name} · ${template.title}`;
+        const rename = document.createElement("button"); rename.type = "button"; rename.className = "button"; rename.textContent = "改名";
+        rename.addEventListener("click", async () => {
+          const name = prompt("模板新名称：", template.name);
+          if (!name || !name.trim() || name.trim() === template.name) return;
+          try { await cloudResult(db.from("todo_task_templates").update({ name: name.trim().slice(0, 80), updated_at: new Date().toISOString() }).eq("id", template.id)); await loadCloudState(); renderTemplateDialog(); }
+          catch (error) { showStorageStatus(`模板改名失败：${messageOf(error)}`); }
+        });
+        const remove = document.createElement("button"); remove.type = "button"; remove.className = "button"; remove.textContent = "删除";
+        remove.addEventListener("click", async () => {
+          if (!confirm(`删除模板“${template.name}”？已创建的任务不会受影响。`)) return;
+          try { await cloudResult(db.from("todo_task_templates").delete().eq("id", template.id)); await loadCloudState(); renderTemplateDialog(); }
+          catch (error) { showStorageStatus(`模板删除失败：${messageOf(error)}`); }
+        });
+        row.append(details, rename, remove); list.append(row);
+      }
+    }
+
+    async function createImportedTasks(items) {
+      const successes = [];
+      const failures = [];
+      if (state.busy) return { successes, failures: items.map(task => ({ task, error: "页面正在保存其他更改，请稍后重试。" })) };
+      setAppBusy(true);
+      try {
+        requireCloudSession();
+        for (const item of items) {
+          const task = {
+            id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+            title: item.title.trim(), type: item.type === "range" ? "range" : "single",
+            date: item.type === "range" ? null : item.date,
+            startDate: item.type === "range" ? item.startDate : null,
+            endDate: item.type === "range" ? item.endDate : null,
+            priority: item.priority === "urgent" ? "urgent" : "normal",
+            startTime: item.startTime || null, endTime: item.endTime || null, createdAt: new Date().toISOString()
+          };
+          try {
+            const validSchedule = task.type === "single" ? validDate(task.date)
+              : validDate(task.startDate) && validDate(task.endDate) && task.startDate <= task.endDate;
+            if (!task.title || task.title.length > 160 || !validSchedule) throw new Error("标题或日期无效");
+            if (Boolean(task.startTime) !== Boolean(task.endTime) || (task.startTime && task.startTime >= task.endTime)) throw new Error("时间段无效");
+            await cloudResult(db.from("todo_tasks").insert(taskInsertRow(task)));
+            successes.push(task);
+          } catch (error) {
+            failures.push({ task, error: messageOf(error) });
+          }
+        }
+        await loadCloudState();
+        focus.refreshTasks();
+        render();
+      } catch (error) {
+        for (const item of items.slice(successes.length + failures.length)) failures.push({ task: item, error: messageOf(error) });
+      } finally {
+        setAppBusy(false);
+      }
+      return { successes, failures };
     }
 
     function openDialog(task = null) {
@@ -887,17 +1056,28 @@
       el("singleDate").value = task?.date || state.selectedDate;
       el("startDate").value = task?.startDate || state.selectedDate;
       el("endDate").value = task?.endDate || state.selectedDate;
+      const rule = task ? state.recurrences.get(task.id) : null;
+      el("recurrenceFrequency").value = rule?.frequency || "weekly";
+      el("recurrenceStart").value = rule?.start_date || state.selectedDate;
+      el("recurrenceEnd").value = rule?.end_date || "";
+      el("recurrenceMonthDay").value = rule?.month_day || Number(state.selectedDate.slice(8, 10));
+      document.querySelectorAll("#weekdayField input").forEach(input => { input.checked = rule?.weekdays?.includes(Number(input.value)) || (!rule && Number(input.value) === (new Date(`${state.selectedDate}T00:00:00Z`).getUTCDay() || 7)); });
       syncTypeFields(); taskDialog.showModal();
       requestAnimationFrame(() => el("taskTitle").focus());
     }
     function syncTypeFields() {
-      const isRange = document.querySelector('input[name="taskType"]:checked').value === "range";
-      el("singleDateField").hidden = isRange; el("rangeFields").hidden = !isRange;
+      const type = document.querySelector('input[name="taskType"]:checked').value;
+      const isRange = type === "range", isRecurring = type === "recurring";
+      el("singleDateField").hidden = type !== "single"; el("rangeFields").hidden = !isRange;
+      el("recurrenceFields").hidden = !isRecurring;
+      el("weekdayField").hidden = el("recurrenceFrequency").value !== "weekly";
+      el("monthDayField").hidden = el("recurrenceFrequency").value !== "monthly";
       el("rangeHint").hidden = !isRange && !el("taskId").value;
       el("rangeHint").textContent = (isRange ? "起止日期当天也包含在内，每天分别打勾。编辑内容或日期会修改整条共同任务。" : "")
         + (el("taskId").value ? "更改任务类型或单日日期会重置完成状态。" : "");
     }
     document.querySelectorAll('input[name="taskType"]').forEach(input => input.addEventListener("change", syncTypeFields));
+    el("recurrenceFrequency").addEventListener("change", syncTypeFields);
     el("taskForm").addEventListener("submit", async event => {
       event.preventDefault();
       if (state.busy) return;
@@ -918,27 +1098,41 @@
       if (type === "range" && el("startDate").value > el("endDate").value) {
         return el("formError").textContent = "结束日期不能早于开始日期。";
       }
+      let recurrence = null;
+      if (type === "recurring") {
+        const frequency = el("recurrenceFrequency").value;
+        const weekdays = [...document.querySelectorAll("#weekdayField input:checked")].map(input => Number(input.value));
+        const monthDay = Number(el("recurrenceMonthDay").value);
+        if (!validDate(el("recurrenceStart").value) || (el("recurrenceEnd").value && !validDate(el("recurrenceEnd").value))) return el("formError").textContent = "请填写有效的重复日期范围。";
+        if (el("recurrenceEnd").value && el("recurrenceEnd").value < el("recurrenceStart").value) return el("formError").textContent = "重复结束日期不能早于开始日期。";
+        if (frequency === "weekly" && !weekdays.length) return el("formError").textContent = "请至少选择一个星期日期。";
+        if (frequency === "monthly" && (!Number.isInteger(monthDay) || monthDay < 1 || monthDay > 31)) return el("formError").textContent = "每月日期需为 1—31。";
+        recurrence = { frequency, weekdays: frequency === "weekly" ? weekdays : null, month_day: frequency === "monthly" ? monthDay : null, start_date: el("recurrenceStart").value, end_date: el("recurrenceEnd").value || null };
+      }
       const existingId = el("taskId").value;
       const existing = state.tasks.find(task => task.id === existingId);
+      if (existing?.type === "recurring" && type !== "recurring") return el("formError").textContent = "重复任务可通过设置结束日期停止；为保留历史，不能改成单日或连续任务。";
       const next = {
         id: existingId || (globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
         title, type, priority, startTime: startTime || null, endTime: endTime || null,
         createdAt: existing?.createdAt || new Date().toISOString()
       };
       if (type === "single") next.date = el("singleDate").value;
-      else { next.startDate = el("startDate").value; next.endDate = el("endDate").value; }
+      else if (type === "range") { next.startDate = el("startDate").value; next.endDate = el("endDate").value; }
       const tasks = existingId ? state.tasks.map(task => task.id === existingId ? next : task) : [...state.tasks, next];
+      const recurrences = new Map(state.recurrences);
+      if (recurrence) recurrences.set(next.id, { task_id: next.id, ...recurrence }); else recurrences.delete(next.id);
       const completions = { ...state.completions };
       if (existing) {
         for (const key of Object.keys(completions)) {
           if (key !== existing.id && !key.startsWith(existing.id + ":")) continue;
-          if (existing.type !== type || (type === "single" && existing.date !== next.date)
+          if ((existing.type !== type && existing.type !== "recurring" && type !== "recurring") || (type === "single" && existing.date !== next.date)
             || (type === "range" && !appearsOn(next, key.slice(existing.id.length + 1)))) delete completions[key];
         }
       }
-      if (!await save(tasks, completions)) return el("formError").textContent = "保存失败，输入内容仍在，请根据页面提示重试。";
+      if (!await save(tasks, completions, recurrences)) return el("formError").textContent = "保存失败，输入内容仍在，请根据页面提示重试。";
       if (!appearsOn(next, state.selectedDate)) {
-        state.selectedDate = type === "single" ? next.date : next.startDate;
+        state.selectedDate = type === "single" ? next.date : type === "range" ? next.startDate : recurrence.start_date;
       }
       taskDialog.close(); render();
     });
@@ -1001,12 +1195,17 @@
     function showLogin(message = "") {
       notes.reset();
       appearance.reset();
-      if (state.session) focus.pauseForLogout();
+      if (state.session) void focus.pauseForLogout().catch(error => console.error("退出登录时暂停专注失败", error));
       focus.reset();
+      profile.reset();
+      transfer.close();
+      navigation.setActive(false);
       quotes.setActive(false);
       settings.close();
       state.session = null;
       state.tasks = [];
+      state.recurrences = new Map();
+      state.templates = [];
       state.completions = {};
       state.displayName = "";
       el("appRoot").hidden = true;
@@ -1039,12 +1238,14 @@
       el("settingsButton").hidden = false;
       companion.setActive(true);
       quotes.setActive(true);
+      profile.reset();
+      navigation.setActive(true);
       el("userIdentity").textContent = sessionLabel();
       el("saveMode").textContent = "CLOUD / 云端保存";
       setAppBusy(true);
       try {
         await loadCloudState();
-        focus.setActive(true);
+        await focus.setActive(true);
         render();
         updateMigrationPrompt();
         showStorageStatus("");
@@ -1052,7 +1253,7 @@
       } catch (error) {
         state.tasks = [];
         state.completions = {};
-        focus.setActive(true);
+        await focus.setActive(true);
         render();
         showStorageStatus(`云端事项读取失败：${messageOf(error)}`);
       } finally {
@@ -1060,9 +1261,20 @@
       }
     }
     async function boot() {
-      if (!configReady || !auth || !db) {
+      if (!configReady) {
         el("loginButton").disabled = true;
         el("authMessage").textContent = "CloudBase 前端配置不完整，请检查 D 盘项目中的 .env.local。";
+        return;
+      }
+      el("loginButton").disabled = true;
+      try {
+        const { default: cloudbase } = await import("@cloudbase/js-sdk");
+        cloudApp = cloudbase.init(cloudConfig);
+        auth = cloudApp?.auth || null;
+        cloudDb = typeof cloudApp?.rdb === "function" ? cloudApp.rdb() : null;
+        if (!auth || !cloudDb) throw new Error("CloudBase 客户端初始化失败。");
+      } catch (error) {
+        el("authMessage").textContent = `云端客户端加载失败：${messageOf(error)}`;
         return;
       }
       auth.onAuthStateChange((event) => {
@@ -1116,10 +1328,56 @@
 
     el("addButton").addEventListener("click", () => openDialog());
     el("cancelButton").addEventListener("click", () => taskDialog.close());
+    el("quickAddForm").addEventListener("submit", async event => {
+      event.preventDefault();
+      const template = state.templates.find(item => item.id === el("quickTemplate").value);
+      const title = (el("quickTaskTitle").value.trim() || template?.title || "").slice(0, 160);
+      if (!title) return showStorageStatus("请先写下事项内容，或选择一个模板。", "error");
+      const task = {
+        id: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        title, type: "single", date: state.selectedDate,
+        priority: template?.priority === "urgent" ? "urgent" : "normal",
+        startTime: template?.start_time ? String(template.start_time).slice(0, 5) : null,
+        endTime: template?.end_time ? String(template.end_time).slice(0, 5) : null,
+        createdAt: new Date().toISOString(), deletedAt: null
+      };
+      if (await save([...state.tasks, task], state.completions)) {
+        el("quickTaskTitle").value = ""; render(); showStorageStatus("已添加到当前日期。", "success");
+      }
+    });
+    el("quickTemplate").addEventListener("change", () => {
+      const template = state.templates.find(item => item.id === el("quickTemplate").value);
+      if (template && !el("quickTaskTitle").value.trim()) el("quickTaskTitle").value = template.title;
+    });
+    el("saveTemplateButton").addEventListener("click", async () => {
+      if (!state.session || state.busy) return;
+      const title = el("quickTaskTitle").value.trim() || prompt("模板中的事项内容：", "");
+      if (!title || !title.trim()) return;
+      await saveTemplate({ title, priority: "normal", startTime: null, endTime: null });
+    });
+    el("manageTemplatesButton").addEventListener("click", () => { renderTemplateDialog(); el("templateDialog").showModal(); });
+    el("templateClose").addEventListener("click", () => el("templateDialog").close());
+    el("undoButton").addEventListener("click", () => { const id = el("undoToast").dataset.taskId; if (id) void restoreTask(id); });
+    el("trashButton").addEventListener("click", () => { renderTrash(); settings.close(); el("trashDialog").showModal(); });
+    el("trashClose").addEventListener("click", () => el("trashDialog").close());
+    let backupPromise;
+    async function ensureBackup() {
+      if (!backupPromise) backupPromise = import("./src/backup.js").then(({ setupBackup }) => setupBackup({
+        app: appFacade, db, exportButton: el("backupExportButton"), importButton: el("backupImportButton"), fileInput: el("backupFile"),
+        getUid: sessionUid, appearance, cloudResult, notify: showStorageStatus,
+        reload: async () => { await loadCloudState(); focus.refreshTasks(); render(); }
+      }));
+      return backupPromise;
+    }
+    for (const id of ["backupExportButton", "backupImportButton"]) el(id).addEventListener("click", async event => {
+      if (backupPromise) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      await ensureBackup(); el(id).click();
+    }, { once: true, capture: true });
     el("importButton").addEventListener("click", () => { void migrateLocalData(); });
     el("logoutButton").addEventListener("click", async () => {
       if (!auth || state.busy) return;
-      focus.pauseForLogout();
+      try { await focus.pauseForLogout(); } catch (error) { showStorageStatus(`退出前暂停专注失败：${messageOf(error)}`); return; }
       setAppBusy(true);
       try {
         const { error } = await auth.signOut();

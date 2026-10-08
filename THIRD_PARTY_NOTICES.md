@@ -7,6 +7,7 @@ This project includes or adapts small parts of the following open-source project
 - Source: <https://github.com/adobe-fonts/source-han-serif>
 - Version: 2.003R variable CN subset
 - Used for: task titles
+- The original WOFF2 is also packaged into 21 Unicode-range WOFF2 subsets for on-demand loading; outlines and SIL OFL attribution are unchanged.
 - License: SIL Open Font License 1.1; the complete license is included in `assets/fonts/SourceHanSerif-LICENSE.txt`.
 
 ## LXGW WenKai / 霞鹜文楷
@@ -48,4 +49,23 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Mammoth.js
+
+- Source: <https://github.com/mwilliamson/mammoth.js>
+- Used for: reading `.docx` task imports in the browser
+- License: BSD 2-Clause License
+
+## docx
+
+- Source: <https://github.com/dolanmiu/docx>
+- Used for: creating `.docx` task exports in the browser
+- License: MIT License
+
+## fflate
+
+- Source: <https://github.com/101arrowz/fflate>
+- Version: 0.8.3
+- Used for: creating and validating local ZIP backups in the browser
+- License: MIT License
