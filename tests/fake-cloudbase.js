@@ -7,7 +7,7 @@ const future = new Date(); future.setDate(future.getDate()+40);
 const initial = {
   todo_tasks: [
     {owner_id:uid,id:'fixture-range',title:'给自己的计划，一点点添上细节',type:'range',start_date:today,end_date:iso(future),priority:'normal',created_at:new Date().toISOString()},
-    {owner_id:uid,id:'fixture-single',title:'把今天的小事，好好完成',type:'single',task_date:today,priority:'urgent',start_time:'14:00',end_time:'15:30',created_at:new Date().toISOString()}
+    {owner_id:uid,id:'fixture-single',title:'把今天的小事，好好完成',type:'single',task_date:today,priority:'urgent',start_time:'14:00',end_time:'15:30',remind_time:'13:45',remind_enabled:true,created_at:new Date().toISOString()}
   ], todo_daily_completions:[],todo_completion_history:[],todo_daily_notes:[],todo_preferences:[],todo_task_recurrences:[],todo_task_templates:[],todo_focus_sessions:[],files:{}
 };
 let data = JSON.parse(localStorage.getItem(key) || 'null') || structuredClone(initial);
@@ -60,7 +60,41 @@ function from(table) {
     }).then(resolve,reject);}
   };return query;
 }
-async function rpc(name,{p_data}={}) {
+async function rpc(name,{p_data,p_settings,p_device_id}={}) {
+  if(name==='reminder_pairing_create'){
+    return {data:{code:'654321',expires_at:new Date(Date.now()+600000).toISOString()},error:null};
+  }
+  if(name==='reminder_devices_list'){
+    const devKey='daily-todo.fake-devices.v1';
+    const list=JSON.parse(localStorage.getItem(devKey)||'[]');
+    return {data:{devices:list},error:null};
+  }
+  if(name==='reminder_device_revoke'){
+    const devKey='daily-todo.fake-devices.v1';
+    let list=JSON.parse(localStorage.getItem(devKey)||'[]');
+    list=list.filter(d=>d.id!==p_device_id);
+    localStorage.setItem(devKey,JSON.stringify(list));
+    return {data:true,error:null};
+  }
+  if(name==='reminder_settings_read'||name==='reminder_settings_save'){
+    const saved=localStorage.getItem('daily-todo.reminder-settings.v1');
+    const current=saved?JSON.parse(saved):{feishu_webhook:null,wecom_webhook:null,digest_enabled:true,digest_time:'08:00',evening_enabled:true,evening_time:'20:30',remind_lead_days:3,grace_minutes:60,quiet_start:null,quiet_end:null};
+    const next={...current};
+    if(name==='reminder_settings_save'){
+      for(const key of ['feishu_webhook','wecom_webhook'])if(p_settings&&key in p_settings)next[key]=String(p_settings[key]||'').trim()||null;
+      if(p_settings&&'digest_enabled' in p_settings)next.digest_enabled=!!p_settings.digest_enabled;
+      if(p_settings&&'digest_time' in p_settings)next.digest_time=p_settings.digest_time;
+      if(p_settings&&'evening_enabled' in p_settings)next.evening_enabled=!!p_settings.evening_enabled;
+      if(p_settings&&'evening_time' in p_settings)next.evening_time=p_settings.evening_time;
+      if(p_settings&&'remind_lead_days' in p_settings)next.remind_lead_days=Number(p_settings.remind_lead_days);
+      if(p_settings&&'grace_minutes' in p_settings)next.grace_minutes=Number(p_settings.grace_minutes);
+      if(p_settings&&'quiet_start' in p_settings)next.quiet_start=p_settings.quiet_start||null;
+      if(p_settings&&'quiet_end' in p_settings)next.quiet_end=p_settings.quiet_end||null;
+      localStorage.setItem('daily-todo.reminder-settings.v1',JSON.stringify(next));
+    }
+    const mask=url=>url?'…'+url.slice(-4):'';
+    return {data:{feishu_set:!!next.feishu_webhook,feishu_hint:mask(next.feishu_webhook),wecom_set:!!next.wecom_webhook,wecom_hint:mask(next.wecom_webhook),digest_enabled:next.digest_enabled,digest_time:next.digest_time,evening_enabled:next.evening_enabled!==false,evening_time:next.evening_time||'20:30',remind_lead_days:Number.isInteger(next.remind_lead_days)?next.remind_lead_days:3,grace_minutes:next.grace_minutes,quiet_start:next.quiet_start,quiet_end:next.quiet_end},error:null};
+  }
   if(name!=='restore_todo_backup_v1')return {data:null,error:{message:'未知数据库函数'}};
   const next=structuredClone(data);
   const order=['todo_tasks','todo_task_recurrences','todo_daily_notes','todo_daily_completions','todo_completion_history','todo_focus_sessions','todo_task_templates','todo_preferences'];

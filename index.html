@@ -242,6 +242,7 @@
     }
     .priority-badge { padding: 3px 7px; border: 1px solid currentColor; border-radius: 999px; color: var(--priority-color); font-weight: 700; }
     .task-time { color: var(--priority-color); font-weight: 700; font-variant-numeric: tabular-nums; }
+    .task-remind { color: var(--accent); font-weight: 700; font-variant-numeric: tabular-nums; }
     .task-row.done .task-title { color: var(--muted); text-decoration: line-through 2px var(--priority-color); }
     .task-actions { display: flex; flex-shrink: 0; gap: 6px; opacity: 0; transition: opacity .15s ease; }
     .task-row:hover .task-actions, .task-actions:focus-within { opacity: 1; }
@@ -291,6 +292,9 @@
     .priority-toggle input[value="normal"]:checked + span { border-color: var(--priority-normal); background: var(--priority-normal); color: #fff; }
     .priority-toggle input[value="urgent"]:checked + span { border-color: var(--priority-urgent); background: var(--priority-urgent); color: #fff; }
     .date-range, .time-range { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .remind-toggle { display: flex; align-items: center; gap: 10px; margin-top: 10px; cursor: pointer; color: var(--muted); font-size: 12px; letter-spacing: 0; }
+    .remind-toggle input { width: 20px; height: 20px; min-height: 0; flex: 0 0 20px; accent-color: var(--accent); }
+    .remind-toggle span { line-height: 1.5; }
     .form-error { min-height: 20px; margin: 12px 0 0; color: var(--danger); font-size: 12px; }
     .form-hint { color: var(--muted); font-size: 12px; line-height: 1.7; }
     .storage-status { color: var(--danger); font-size: 14px; line-height: 1.6; padding: 12px 0; }
@@ -440,6 +444,7 @@
       <section class="settings-section"><h3>账号与同步 <small>ACCOUNT</small></h3><div class="settings-stack"><span class="save-mode" id="saveMode" title="当前事项保存在登录账号的云端空间">CLOUD / 云端保存</span><span class="user-identity" id="userIdentity"></span><button class="button" id="logoutButton" type="button">退出登录</button></div></section>
       <section class="settings-section"><h3>外观与陪伴 <small>APPEARANCE</small></h3><div class="settings-stack"><button class="button" id="backgroundButton" type="button">背景 / BACKGROUND</button><button class="button" id="motionButton" type="button" aria-pressed="true">花瓣动效 / MOTION ON</button><button class="button" id="petButton" type="button" aria-pressed="true">宠物 / PET ON</button></div></section>
       <section class="settings-section"><h3>句子 <small>WORDS</small></h3><div class="settings-choice" id="quoteMode"></div><label class="quote-setting-label" for="quoteLibrary">句库选择</label><select class="quote-library" id="quoteLibrary"></select><label class="quote-setting-label" for="customQuote">我的句子（最多 80 字）</label><textarea class="custom-quote-input" id="customQuote" maxlength="80" rows="3" placeholder="写一句今天想看到的话"></textarea><button class="button quote-custom-button" id="useCustomQuote" type="button">使用我的句子</button></section>
+      <section class="settings-section"><h3>提醒 <small>REMINDERS</small></h3><p class="settings-data-copy">到点后由云端定时器推送到飞书 / 企业微信。Webhook 保存在服务端，页面只显示末尾四位。</p><div class="settings-stack remind-form"><label class="remind-field"><span id="feishuLabel">飞书 Webhook</span><input id="reminderFeishu" type="url" autocomplete="off" spellcheck="false" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/…" aria-describedby="reminderStatus"></label><label class="remind-field"><span>企业微信 Webhook</span><input id="reminderWecom" type="url" autocomplete="off" spellcheck="false" placeholder="https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=…"></label><div class="remind-grid"><label class="remind-field"><span>早报时间</span><input id="reminderDigestTime" type="time" step="300" value="08:00"></label><label class="remind-field"><span>宽限（分钟）</span><input id="reminderGrace" type="number" min="0" max="1440" step="5" value="60" inputmode="numeric"></label><label class="remind-field"><span>免打扰开始</span><input id="reminderQuietStart" type="time" step="300"></label><label class="remind-field"><span>免打扰结束</span><input id="reminderQuietEnd" type="time" step="300"></label><label class="remind-field"><span>提前几天开始倒计时</span><input id="reminderLeadDays" type="number" min="0" max="30" step="1" value="3" inputmode="numeric"></label><label class="remind-field"><span>晚间收尾时间</span><input id="reminderEveningTime" type="time" step="300" value="20:30"></label></div><label class="remind-toggle" for="reminderDigest"><input id="reminderDigest" type="checkbox" checked><span>每天发送一次今日安排早报</span></label><label class="remind-toggle" for="reminderEvening"><input id="reminderEvening" type="checkbox" checked><span>晚上再提醒一次今天没做完的事</span></label><button class="button" id="reminderSave" type="button">保存提醒设置</button><p class="settings-data-copy" id="reminderStatus" role="status"></p><div class="device-pairing-wrap"><div class="feature-heading"><h4>桌面提醒程序配对 <small>DESKTOP</small></h4></div><p class="settings-data-copy">让电脑桌面弹出系统通知并能点击标记完成。点击生成配对码并在本地程序输入即可。</p><button class="button" id="reminderPairButton" type="button">配对新电脑</button><div id="pairingCodeBox" class="pairing-code-box" hidden><strong id="pairingCodeDisplay"></strong><span id="pairingCountdown">10 分钟内有效</span></div><div class="devices-list" id="pairedDevicesList"></div></div></div></section>
       <section class="settings-section" id="dataSettings" hidden><h3>数据 <small>DATA</small></h3><p class="settings-data-copy" id="migrationCopy"></p><button class="button primary" id="importButton" type="button">复制本机事项到云端</button></section>
       <section class="settings-section"><h3>备份与恢复 <small>BACKUP</small></h3><p class="settings-data-copy">导出包含任务、完成记录、补充、专注、模板、偏好和自定义背景的校验 ZIP。</p><div class="settings-stack"><button class="button" id="backupExportButton" type="button">导出完整备份</button><button class="button" id="backupImportButton" type="button">校验并恢复备份</button><button class="button" id="trashButton" type="button">最近删除</button><input id="backupFile" type="file" accept=".zip,application/zip" hidden></div></section>
     </div>
@@ -493,6 +498,12 @@
         </div>
       </div>
       <p class="form-hint">不需要限定几点完成时，两项都留空；填写时必须同时选择开始和结束时间。</p>
+      <div class="field">
+        <label for="taskRemindTime">提醒时间 / REMIND（可选）</label>
+        <input id="taskRemindTime" type="time" step="300">
+        <label class="remind-toggle" for="taskRemindEnabled"><input id="taskRemindEnabled" type="checkbox" checked><span>到点提醒（飞书常用）；留空则沿用开始时间</span></label>
+      </div>
+      <p class="form-hint" id="remindHint">只对单日与重复任务单独提醒；连续多日任务只出现在每日早报里，避免连续轰炸。提醒开关和通道在设置里配置。</p>
       <p class="form-error" id="formError" role="alert"></p>
       <div class="form-actions">
         <button class="button" id="cancelButton" type="button">取消</button>
@@ -517,6 +528,7 @@
     import { setupFocus } from "./src/focus.js";
     import { formatFocusDuration } from "./src/focus-core.js";
     import { setupNavigation } from "./src/navigation.js";
+    import { applyReminderSettings, buildReminderPayload, describeSaved, requestPairingCode, fetchDevicesList, revokeDeviceById } from "./src/reminders.js";
     import { completionKey, taskAppearsOn } from "./src/recurrence-core.js";
     import "./src/companion.css";
     import "./src/features.css";
@@ -607,6 +619,7 @@
       await ensureTransfer(); el(id).click();
     }, { once: true, capture: true });
     el("backgroundButton").addEventListener("click", () => settings.close(), { capture: true });
+    el("settingsButton").addEventListener("click", () => { void loadReminderSettings(); });
     setupCalendar({ button: el("calendarButton"), getSelectedDate: () => state.selectedDate, countTasks: date => tasksFor(date).length, onSelect: date => {
       state.selectedDate = date; render();
     }});
@@ -646,13 +659,16 @@
         ...task,
         priority: task?.priority === "urgent" ? "urgent" : "normal",
         startTime: typeof task?.startTime === "string" && task.startTime ? task.startTime : null,
-        endTime: typeof task?.endTime === "string" && task.endTime ? task.endTime : null
+        endTime: typeof task?.endTime === "string" && task.endTime ? task.endTime : null,
+        remindTime: typeof task?.remindTime === "string" && task.remindTime ? task.remindTime : null,
+        remindEnabled: task?.remindEnabled !== false
       })).filter(task => {
         const timeValid = (!task.startTime && !task.endTime)
           || (/^([01]\d|2[0-3]):[0-5]\d$/.test(task.startTime || "") && /^([01]\d|2[0-3]):[0-5]\d$/.test(task.endTime || "") && task.startTime < task.endTime);
+        const remindValid = !task.remindTime || /^([01]\d|2[0-3]):[0-5]\d$/.test(task.remindTime);
         const valid = task && typeof task.id === "string" && /^[A-Za-z0-9_-]+$/.test(task.id) && !ids.has(task.id)
           && typeof task.title === "string" && task.title.trim().length > 0 && task.title.length <= 160
-          && ["normal", "urgent"].includes(task.priority) && timeValid
+          && ["normal", "urgent"].includes(task.priority) && timeValid && remindValid
           && (task.type === "single" ? validDate(task.date)
             : task.type === "range" && validDate(task.startDate) && validDate(task.endDate) && task.startDate <= task.endDate);
         if (valid) ids.add(task.id);
@@ -716,6 +732,8 @@
         end_date: task.type === "range" ? task.endDate : null,
         start_time: task.startTime || null,
         end_time: task.endTime || null,
+        remind_time: task.remindTime || null,
+        remind_enabled: task.remindEnabled !== false,
         priority: task.priority,
         created_at: task.createdAt,
         deleted_at: task.deletedAt || null
@@ -736,6 +754,8 @@
         priority: row.priority === "urgent" ? "urgent" : "normal",
         startTime: row.start_time ? String(row.start_time).slice(0, 5) : null,
         endTime: row.end_time ? String(row.end_time).slice(0, 5) : null,
+        remindTime: row.remind_time ? String(row.remind_time).slice(0, 5) : null,
+        remindEnabled: row.remind_enabled !== false,
         createdAt: row.created_at || new Date().toISOString()
       };
       task.deletedAt = row.deleted_at || null;
@@ -879,6 +899,13 @@
       });
     }
     function isDone(task, date) { return Boolean(state.completions[completionKey(task, date)]); }
+    // 提醒时间只可能是 HH:mm（写入前已校验），这里直接拼接不会引入 HTML。
+    function remindLabel(task) {
+      if (task.remindEnabled === false) return "";
+      const time = task.remindTime || task.startTime;
+      if (!time) return "";
+      return `<span class="task-remind">提醒 ${time}${task.remindTime ? "" : "（开始）"}</span>`;
+    }
 
     // VIEW / 重绘后保留任务按钮焦点；日期选择统一由日历负责。
     function render() {
@@ -903,7 +930,7 @@
         const focusSeconds = focus.getTaskSeconds(task.id, state.selectedDate);
         return `<article class="task-row priority-${task.priority} ${isDone(task, state.selectedDate) ? "done" : ""}" data-id="${task.id}">
         <button class="check" data-action="toggle" aria-pressed="${isDone(task, state.selectedDate)}"></button>
-        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}<span class="task-type">${task.type === "range" ? "连续任务" : task.type === "recurring" ? "重复任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : task.type === "recurring" ? (state.recurrences.get(task.id)?.frequency === "monthly" ? `MONTHLY · ${state.recurrences.get(task.id)?.month_day} 日` : "WEEKLY") : "ONE DAY"}</span>${focusSeconds ? `<span class="task-focus">专注 ${formatFocusDuration(focusSeconds)}</span>` : ""}</div></div>
+        <div class="task-content"><p class="task-title"></p><div class="task-notes"></div><div class="task-meta"><span class="priority-badge">${task.priority === "urgent" ? "紧急 / URGENT" : "普通 / NORMAL"}</span>${task.startTime ? `<span class="task-time">${task.startTime}—${task.endTime}</span>` : ""}${remindLabel(task)}<span class="task-type">${task.type === "range" ? "连续任务" : task.type === "recurring" ? "重复任务" : "单日事项"}</span><span>${task.type === "range" ? `DAILY · ${task.startDate} — ${task.endDate}` : task.type === "recurring" ? (state.recurrences.get(task.id)?.frequency === "monthly" ? `MONTHLY · ${state.recurrences.get(task.id)?.month_day} 日` : "WEEKLY") : "ONE DAY"}</span>${focusSeconds ? `<span class="task-focus">专注 ${formatFocusDuration(focusSeconds)}</span>` : ""}</div></div>
         <div class="task-actions"><button class="task-action task-focus-action" data-action="focus" aria-label="关联此任务开始专注">专注</button><button class="task-action" data-action="template" aria-label="保存为模板">模板</button><button class="task-action" data-action="edit" aria-label="编辑">编辑</button><button class="task-action delete" data-action="delete" aria-label="删除">删除</button></div>
       </article>`; }).join("");
       document.querySelectorAll(".task-row").forEach((row, index) => {
@@ -1051,6 +1078,8 @@
       document.querySelector(`input[name="taskPriority"][value="${task?.priority === "urgent" ? "urgent" : "normal"}"]`).checked = true;
       el("taskStartTime").value = task?.startTime || "";
       el("taskEndTime").value = task?.endTime || "";
+      el("taskRemindTime").value = task?.remindTime || "";
+      el("taskRemindEnabled").checked = task?.remindEnabled !== false;
       const type = task?.type || "single";
       document.querySelector(`input[name="taskType"][value="${type}"]`).checked = true;
       el("singleDate").value = task?.date || state.selectedDate;
@@ -1086,11 +1115,14 @@
       const priority = document.querySelector('input[name="taskPriority"]:checked').value;
       const startTime = el("taskStartTime").value;
       const endTime = el("taskEndTime").value;
+      const remindTime = el("taskRemindTime").value;
+      const remindEnabled = el("taskRemindEnabled").checked;
       if (!title) return el("formError").textContent = "请填写事项内容。";
       if (title.length > 160) return el("formError").textContent = "事项内容最多 160 个字符。";
       if (!['normal', 'urgent'].includes(priority)) return el("formError").textContent = "请选择任务优先级。";
       if (Boolean(startTime) !== Boolean(endTime)) return el("formError").textContent = "开始和结束时间需要同时填写，或同时留空。";
       if (startTime && startTime >= endTime) return el("formError").textContent = "结束时间必须晚于开始时间。";
+      if (remindTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(remindTime)) return el("formError").textContent = "请填写有效的提醒时间。";
       if (type === "single" && !validDate(el("singleDate").value)) return el("formError").textContent = "请选择有效的单日日期。";
       if (type === "range" && (!validDate(el("startDate").value) || !validDate(el("endDate").value))) {
         return el("formError").textContent = "请填写有效的开始和结束日期。";
@@ -1115,6 +1147,7 @@
       const next = {
         id: existingId || (globalThis.crypto?.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`),
         title, type, priority, startTime: startTime || null, endTime: endTime || null,
+        remindTime: remindTime || null, remindEnabled,
         createdAt: existing?.createdAt || new Date().toISOString()
       };
       if (type === "single") next.date = el("singleDate").value;
@@ -1195,6 +1228,12 @@
     function showLogin(message = "") {
       notes.reset();
       appearance.reset();
+      reminderLoadedUid = "";
+      if (pairingTimer) { clearInterval(pairingTimer); pairingTimer = null; }
+      if (el("pairingCodeBox")) el("pairingCodeBox").hidden = true;
+      if (el("reminderPairButton")) el("reminderPairButton").disabled = false;
+      if (el("pairedDevicesList")) el("pairedDevicesList").replaceChildren();
+      if (el("reminderStatus")) el("reminderStatus").textContent = "";
       if (state.session) void focus.pauseForLogout().catch(error => console.error("退出登录时暂停专注失败", error));
       focus.reset();
       profile.reset();
@@ -1375,6 +1414,128 @@
       await ensureBackup(); el(id).click();
     }, { once: true, capture: true });
     el("importButton").addEventListener("click", () => { void migrateLocalData(); });
+
+    // REMINDERS / 读写都走受控 RPC；页面上永远拿不到完整的 Webhook。
+    const reminderElements = {
+      feishu: el("reminderFeishu"), wecom: el("reminderWecom"),
+      digest: el("reminderDigest"), digestTime: el("reminderDigestTime"),
+      evening: el("reminderEvening"), eveningTime: el("reminderEveningTime"),
+      leadDays: el("reminderLeadDays"),
+      grace: el("reminderGrace"), quietStart: el("reminderQuietStart"), quietEnd: el("reminderQuietEnd")
+    };
+    let reminderLoadedUid = "";
+    function showReminderStatus(message, tone = "muted") {
+      const node = el("reminderStatus");
+      node.textContent = message;
+      node.dataset.tone = tone;
+    }
+    async function loadReminderSettings(force = false) {
+      const uid = sessionUid();
+      if (!uid || (!force && reminderLoadedUid === uid)) return;
+      try {
+        const settings = await cloudResult(db.rpc("reminder_settings_read", {}));
+        if (uid !== sessionUid()) return;
+        applyReminderSettings(reminderElements, settings);
+        reminderLoadedUid = uid;
+        showReminderStatus("");
+        await renderPairedDevices();
+      } catch (error) {
+        reminderLoadedUid = "";
+        showReminderStatus(`提醒设置读取失败：${messageOf(error)}`, "error");
+      }
+    }
+
+    async function renderPairedDevices() {
+      const container = el("pairedDevicesList");
+      if (!sessionUid() || !container) return;
+      try {
+        const devices = await fetchDevicesList(db, cloudResult);
+        container.replaceChildren(...devices.map(device => {
+          const item = document.createElement("div");
+          item.className = "device-item";
+          const info = document.createElement("div");
+          info.className = "device-item-info";
+          const name = document.createElement("strong");
+          name.textContent = device.name || "未命名设备";
+          const seen = document.createElement("span");
+          seen.textContent = device.last_seen_at
+            ? `最近连接：${new Intl.DateTimeFormat("zh-CN", { timeZone: "Asia/Shanghai", month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(device.last_seen_at))}`
+            : "尚未连接";
+          info.append(name, seen);
+          const revokeBtn = document.createElement("button");
+          revokeBtn.type = "button";
+          revokeBtn.className = "device-revoke-button";
+          revokeBtn.textContent = "吊销";
+          revokeBtn.addEventListener("click", async () => {
+            if (!confirm(`确定要吊销设备「${device.name}」的提醒权限吗？`)) return;
+            revokeBtn.disabled = true;
+            try {
+              await revokeDeviceById(db, cloudResult, device.id);
+              await renderPairedDevices();
+            } catch (err) {
+              alert(`吊销失败：${messageOf(err)}`);
+              revokeBtn.disabled = false;
+            }
+          });
+          item.append(info, revokeBtn);
+          return item;
+        }));
+      } catch (err) {
+        container.textContent = "设备列表暂不可用";
+      }
+    }
+
+    let pairingTimer = null;
+    el("reminderPairButton").addEventListener("click", async () => {
+      if (state.busy || !sessionUid()) return;
+      el("reminderPairButton").disabled = true;
+      try {
+        const result = await requestPairingCode(db, cloudResult);
+        if (!result?.code) throw new Error("无法生成配对码");
+        el("pairingCodeDisplay").textContent = result.code;
+        el("pairingCodeBox").hidden = false;
+        if (pairingTimer) clearInterval(pairingTimer);
+        const expiresAt = new Date(result.expires_at).getTime();
+        pairingTimer = setInterval(() => {
+          const remaining = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+          if (remaining <= 0) {
+            clearInterval(pairingTimer);
+            el("pairingCountdown").textContent = "已过期，请重新生成";
+            el("reminderPairButton").disabled = false;
+          } else {
+            const m = Math.floor(remaining / 60);
+            const s = remaining % 60;
+            el("pairingCountdown").textContent = `${m}:${String(s).padStart(2, "0")} 后过期`;
+          }
+        }, 1000);
+      } catch (err) {
+        alert(`生成配对码失败：${messageOf(err)}`);
+        el("reminderPairButton").disabled = false;
+      }
+    });
+    el("reminderSave").addEventListener("click", async () => {
+      if (state.busy || !sessionUid()) return;
+      let payload;
+      try {
+        payload = buildReminderPayload(reminderElements);
+      } catch (error) {
+        return showReminderStatus(error.message, "error");
+      }
+      const uid = sessionUid();
+      el("reminderSave").disabled = true;
+      showReminderStatus("正在保存…");
+      try {
+        const saved = await cloudResult(db.rpc("reminder_settings_save", { p_settings: payload }));
+        if (uid !== sessionUid()) return;
+        applyReminderSettings(reminderElements, saved);
+        reminderLoadedUid = uid;
+        showReminderStatus(describeSaved(saved), "success");
+      } catch (error) {
+        showReminderStatus(`保存失败：${messageOf(error)}`, "error");
+      } finally {
+        el("reminderSave").disabled = false;
+      }
+    });
     el("logoutButton").addEventListener("click", async () => {
       if (!auth || state.busy) return;
       try { await focus.pauseForLogout(); } catch (error) { showStorageStatus(`退出前暂停专注失败：${messageOf(error)}`); return; }

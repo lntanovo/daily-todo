@@ -37,6 +37,11 @@ const required = [
   ["日历入口", /id="calendarButton"/],
   ["个人背景入口", /id="backgroundButton"/],
   ["本机数据迁移", /id="importButton"/],
+  ["提醒设置区", /id="reminderFeishu"[\s\S]*id="reminderWecom"[\s\S]*id="reminderSave"/],
+  ["倒计时设置", /id="reminderLeadDays"[^>]*type="number"[\s\S]*id="reminderEveningTime"[^>]*type="time"[\s\S]*id="reminderEvening"[^>]*type="checkbox"/],
+  ["桌面设备配对区", /id="reminderPairButton"[\s\S]*id="pairingCodeBox"[\s\S]*id="pairedDevicesList"/],
+  ["任务提醒时间", /id="taskRemindTime"[^>]*type="time"/],
+  ["任务提醒开关", /id="taskRemindEnabled"[^>]*checked/],
   ["本地任务存储键", /daily-todo\.tasks\.v1/],
   ["本地完成记录键", /daily-todo\.dailyCompletions\.v1/],
 ];
@@ -58,6 +63,11 @@ const transfer = await readFile(new URL("../src/task-transfer.js", import.meta.u
 const transferCore = await readFile(new URL("../src/task-transfer-core.js", import.meta.url), "utf8");
 const profile = await readFile(new URL("../src/profile.js", import.meta.url), "utf8");
 const historyMigration = await readFile(new URL("../cloudbase/migrations/20260927120000_completion_history.sql", import.meta.url), "utf8");
+const reminderMigration = await readFile(new URL("../cloudbase/migrations/20261105120000_reminders.sql", import.meta.url), "utf8");
+const countdownMigration = await readFile(new URL("../cloudbase/migrations/20261116010000_reminder_countdown.sql", import.meta.url), "utf8");
+const reminderCore = await readFile(new URL("../cloudfunctions/reminder-tick/core.js", import.meta.url), "utf8");
+const reminderDone = await readFile(new URL("../cloudfunctions/reminder-done/index.js", import.meta.url), "utf8");
+const remindersModule = await readFile(new URL("../src/reminders.js", import.meta.url), "utf8");
 
 const failures = required.filter(([, pattern]) => !pattern.test(html));
 if (failures.length) {
@@ -152,6 +162,54 @@ if (!/CREATE TABLE public\.todo_daily_notes/.test(migration) || !/ALTER TABLE st
 
 if (!/addEventListener\("pointerdown", startDrag\)/.test(companion) || !/setPointerCapture/.test(companion) || !/PET_POSITION_KEY/.test(companion)) {
   console.error("项目检查失败：宠物拖动或位置保存逻辑不完整。");
+  process.exit(1);
+}
+
+if (!/ADD COLUMN IF NOT EXISTS remind_time/.test(reminderMigration)
+  || !/CREATE TABLE IF NOT EXISTS public\.todo_reminder_settings/.test(reminderMigration)
+  || !/CREATE TABLE IF NOT EXISTS public\.todo_reminder_log/.test(reminderMigration)
+  || !/CREATE TABLE IF NOT EXISTS public\.todo_reminder_tokens/.test(reminderMigration)
+  || !/CREATE OR REPLACE FUNCTION public\.reminder_due_batch/.test(reminderMigration)
+  || !/CREATE OR REPLACE FUNCTION public\.reminder_complete_by_token/.test(reminderMigration)
+  || !/REVOKE ALL ON public\.todo_reminder_settings FROM public, anon, authenticated/.test(reminderMigration)) {
+  console.error("项目检查失败：提醒迁移的表、函数或权限不完整。");
+  process.exit(1);
+}
+
+if (!/reminder_due_batch/.test(reminderCore) || !/deliveryOk/.test(reminderCore)
+  || !/reminder_claim/.test(reminderCore) || !/quiet hours/.test(reminderCore)) {
+  console.error("项目检查失败：提醒投递、去重或免打扰逻辑不完整。");
+  process.exit(1);
+}
+
+if (!/ADD COLUMN IF NOT EXISTS remind_lead_days/.test(countdownMigration)
+  || !/ADD COLUMN IF NOT EXISTS evening_time/.test(countdownMigration)
+  || !/remind_lead_days BETWEEN 0 AND 30/.test(countdownMigration)
+  || !/reminder_digest_batch\(TIMESTAMPTZ, INTEGER, TEXT\)/.test(countdownMigration)
+  || !/p_kind NOT IN \('task', 'digest', 'digest_pm'\)/.test(countdownMigration)
+  || !/DROP FUNCTION IF EXISTS public\.reminder_digest_batch/.test(countdownMigration)) {
+  console.error("项目检查失败：倒计时迁移的列、函数签名或领取白名单不完整。");
+  process.exit(1);
+}
+
+if (!/p_slot/.test(reminderCore) || !/digest_pm/.test(reminderCore)
+  || !/overdue/.test(reminderCore) || !/countdown/.test(reminderCore)) {
+  console.error("项目检查失败：早报/晚间收尾的分档或倒计时渲染缺失。");
+  process.exit(1);
+}
+
+if (!/reminder_complete_by_token/.test(reminderDone) || !/escapeHtml/.test(reminderDone)) {
+  console.error("项目检查失败：一键完成页或转义不完整。");
+  process.exit(1);
+}
+
+if (!/reminder_settings_save/.test(html) || !/buildReminderPayload/.test(remindersModule)) {
+  console.error("项目检查失败：提醒设置表单逻辑缺失。");
+  process.exit(1);
+}
+
+if (/feishu_webhook\s*=\s*(?:elements|el\()/.test(html)) {
+  console.error("项目检查失败：页面直接回填了完整 Webhook。");
   process.exit(1);
 }
 

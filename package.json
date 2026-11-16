@@ -14,7 +14,9 @@
     "test:optimizations": "node tests/five-optimizations.test.mjs",
     "test:focus": "node --test tests/focus.test.mjs",
     "test:transfer": "node --test tests/task-transfer.test.mjs tests/profile.test.mjs",
-    "test:registration": "node --test tests/registration.test.cjs"
+    "test:registration": "node --test tests/registration.test.cjs",
+    "test:reminder": "node --test tests/reminder.test.cjs tests/reminder-settings.test.mjs tests/reminder-device.test.cjs",
+    "test:reminder-ui": "node tests/reminder-ui.test.mjs"
   },
   "devDependencies": {
     "vite": "^7.1.5"
