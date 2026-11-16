@@ -38,6 +38,14 @@ npm run build
 
 成功后会出现 `dist` 文件夹。云端部署上传的是这里面的成品，而不是 `node_modules`。
 
+### 想部署到自己的 CloudBase？
+
+按 **[`docs/self-hosting.md`](docs/self-hosting.md)** 走：建环境 → 跑 11 份迁移 → 生成 `cloudbaserc.json`
+→ 部署 4 个云函数 → 单独建每分钟触发器 → 配 `.env.local` → `tcb hosting deploy dist`
+→ 在站点里填 Webhook。文末有验收清单和常见坑（403 路由、触发器没建、CDN 缓存等）。
+
+> 不接云端也想先看界面？`npm run dev` 后直接看静态页面即可；登录/云端数据需要真实环境。
+
 ## 使用说明
 
 - 日程页可快速录入事项，也可在右上角打开完整表单；单日事项选择一个日期，共同任务选择开始和结束日期（包含首尾两天）。
@@ -124,6 +132,11 @@ npm run build
 
 截图见 `docs/screenshots/`（示例事项，仅供视觉参考）；历史版本的文档已归档到 `docs/archive/`。
 
+## 许可
+
+[MIT](LICENSE) —— 可以自由使用、修改、分发，保留版权声明即可。
+字体（思源宋体 / 霞鹜文楷）与像素猫参考项目的授权见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+
 ---
 
 ## English
@@ -147,7 +160,7 @@ npm run check      # static project checks (41 key entry points)
 npm run build      # produces dist/ for CloudBase static hosting
 ```
 
-Backend setup — CloudBase environment, PostgreSQL migrations, WeCom webhook, cron trigger — is documented in `docs/提醒功能部署手册.md` (Chinese) and `cloudbase/migrations/`.
+Backend setup — CloudBase environment, PostgreSQL migrations, WeCom webhook, cron trigger — is documented step by step in [`docs/self-hosting.md`](docs/self-hosting.md) (Chinese) and `cloudbase/migrations/`.
 
 **QQ bot (optional).** See [`bot/README.md`](bot/README.md). Needs Windows, a logged-in QQ client (SnowLuma is an injector), and AstrBot. Its 119 unit tests run offline:
 
@@ -159,3 +172,5 @@ python -m unittest discover -s tests -t .
 **Stack.** Vanilla JS (no framework) + Vite, CloudBase PostgreSQL with row-level security, Node.js cloud functions, and a Python plugin for AstrBot.
 
 **Credits.** Fonts and the pixel-pet reference project are credited in `THIRD_PARTY_NOTICES.md`.
+
+**License.** MIT — see [LICENSE](LICENSE).
