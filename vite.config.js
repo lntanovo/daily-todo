@@ -36,5 +36,10 @@ export default defineConfig({
   build: {
     // CloudBase Web SDK v3 是组合 SDK；当前压缩后约 203 kB，属于预期范围。
     chunkSizeWarningLimit: 850
+  },
+  server: {
+    // bot/ 是 QQ 机器人的工作目录（含 177 MB 协议端与运行数据），不参与站点构建，
+    // 别让 dev server 的文件监听去遍历它。
+    watch: { ignored: ['**/bot/**'] }
   }
 });

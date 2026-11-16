@@ -1,10 +1,17 @@
-# Today / 今日待办
+# 今天算数 · Make Today Count
 
-电脑端优先的中英混排待办页面，采用 Warm Paper 暖色纸张主题，支持日历选日、单日事项、连续多日任务、每日完成时间、紧急/普通优先级，以及可独立控制的像素猫和花瓣动效。
+**每天打开就能用的日程页：任务在云端，提醒到企业微信，QQ 里说一句话也能记下来。**
+**A daily agenda I actually use every day: tasks in the cloud, reminders in WeCom, and a QQ bot that takes tasks from chat.**
 
-> 当前公网版本：v1.4.0。五项优化已发布，真实账号/双账号验收仍待完成，详见 `docs/五项优化验收记录.md`。
+**中文** · [English](#english)
 
-当前版本已接入腾讯云 CloudBase 用户名密码登录、朋友自助注册和 PostgreSQL 云端保存。开发版必须通过 Vite 打开，不再支持双击 `index.html` 直接使用。
+- **网站**：单日 / 连续多日 / 重复任务，完成打勾与历史，专注计时，365 天热力图，ZIP 完整备份；暖纸主题，登录后按账号隔离。
+- **提醒**：云函数每分钟跑一次——到点提醒、早报（逾期 + 倒计时）、晚间收尾，推到企业微信；**不依赖任何一台常开的电脑**。
+- **QQ 入口（可选）**：`bot/` 里的 AstrBot 插件。私聊发一句话或一整段通知都能拆成任务，先回执确认再写入；任务过了时间会问你「完成了吗」，回「完成」自动打勾。
+
+> 当前公网版本：v1.4.0。五项优化已发布，真实账号 / 双账号验收仍待完成，详见 `docs/五项优化验收记录.md`。
+
+网站部分必须通过 Vite 打开（`npm run dev`），不再支持双击 `index.html`；数据存在 CloudBase PostgreSQL，每个账号只能访问自己的数据。
 
 ## 用开发方式打开
 
@@ -51,10 +58,21 @@ npm run build
 - `背景 / BACKGROUND` 可恢复原色暖纸，也可上传 JPG、PNG、WebP、GIF。大尺寸静态图片会在浏览器中缩小并压缩，原图不被修改；GIF 和动态 WebP 保留动画。
 - 个人页可下载包含任务、重复规则、完成历史、补充、专注、模板、外观偏好和私有背景的 ZIP 完整备份；导入时先校验与预览，再按类别合并。Markdown/Word 清单只是可阅读导出，不是完整备份。
 - 登录后像素宠物默认出现在右下角；图标放大 1.5 倍，可用鼠标或触屏拖动，位置会保存在当前浏览器。点击它会做动作并随机回应。花瓣缓慢飘落，完成任务时集中出现。工具栏的 `动效 / MOTION` 可以关闭并记住选择。
+- 事项可选「提醒时间」和提醒开关；留空则沿用每日开始时间。到点后由云端定时器推送到飞书 / 企业微信，消息里的「标记完成」按钮可直接勾选。设置抽屉的「提醒」区配置 Webhook、早报时间、宽限、免打扰、**提前几天开始倒计时**与**晚间收尾时间**；Webhook 保存在服务端，页面只显示末尾四位。倒计时、逾期与「今天还没做完」折进早报和晚间两次汇总，不单独逐条推送，避免一条作业连轰好几天。连续多日任务只进汇总，避免连续多周轰炸。部署与验收步骤见 `docs/提醒功能部署手册.md`。
 
 登录后，事项保存到 CloudBase PostgreSQL，每个账号只能访问自己的数据。如果浏览器中还有旧版本机事项，登录后会显示一次性导入入口；导入不会删除本机备份。
 
 登录页下方的 `注册 / SIGN UP` 是统一入口，也可以直接分享 <https://daily-todo-d3gq5mama7a468d02-1485775300.tcloudbaseapp.com/#join>。朋友填写称呼、与 lntano 的关系，并自己设置一个 5–24 位的账号和密码。注册不使用手机短信，密码不会写进日程数据库或浏览器存储。当前云端开关为开启，每天最多 20 个、累计最多 100 个账号；注册接口还按客户端 IP 限制为每秒 1 次。网络中断时应在原页面使用原信息重试，系统会返回同一个账号，不会重复创建。
+
+## 可选：QQ 机器人入口（`bot/`）
+
+`bot/` 是一个 AstrBot 插件 + 运行脚本，把「随手记日程」搬到 QQ 私聊里，写的是**同一份** `todo_tasks` / `todo_daily_completions`：
+
+- 一句话或一整段通知都行（四场培训的截图式通知能拆成四条），先回执确认再落库；
+- 任务过了自己的时间还没勾，私聊问一句「完成了吗」，回「完成」直接写完成表，和网页打勾同源；
+- 每日简报、开机补拉漏掉的私聊、群聊静默旁听（默认关）。
+
+它是**可选组件**：需要 Windows + 一直挂着的 QQ 客户端（SnowLuma 注入式协议端），不装也不影响网站和云端提醒。架构、配置项和已知边界见 [`bot/README.md`](bot/README.md)，实现取舍和踩坑见 [`bot/docs/HANDOFF.md`](bot/docs/HANDOFF.md)。
 
 ## 网站化进度
 
@@ -74,6 +92,7 @@ npm run build
 - 2026-09-27 发布 v1.3.4：新增三视图导航、编号文本 / Markdown / Word 导入预览、Markdown / Word 导出、独立专注页和个人完成热力图；应用 `20260927120000_completion_history.sql` 并回填既有完成记录。自定义背景下的主要面板改为透明，热力图改用 GitHub 绿色层级，同时移除全部白色文字描边。
 - 2026-10-08 发布 v1.4.0：五项优化、数据库迁移和完整备份格式已完成并上传到现有 CloudBase 静态托管；公网未登录页的客户端初始化与资源检查通过，真实账号功能及双账号隔离仍待验证。
 - 自动验收已确认公网首页与 SDK 脚本均返回 HTTP 200，并使用本机 Edge 通过腾讯云风险提示页后验证登录页渲染和显隐交互；真实账号登录和两账号隔离仍需由用户输入测试密码完成。
+- 2026-11-16 提醒增强（已应用迁移并重新部署 `reminder-tick`，每分钟触发器已创建；企业微信通道已实测送达）：新增 `remind_lead_days` / `evening_enabled` / `evening_time`，早报增加「逾期」与「未来 N 天倒计时」两个区块，新增 20:30 晚间收尾（独立账本 `digest_pm`）。迁移 `cloudbase/migrations/20261116010000_reminder_countdown.sql`，部署与验收步骤见 `docs/提醒功能部署手册.md`。
 - 腾讯云默认测试域名首次访问可能显示“风险提醒”，点击“确定访问”即可进入；这是默认域名的平台规则，不是本站错误。
 
 ## 工程检查
@@ -81,6 +100,7 @@ npm run build
 ```powershell
 npm run check
 npm run test:registration
+npm run test:reminder
 npm run test:focus
 npm run test:transfer
 npm run test:features
@@ -101,4 +121,40 @@ npm run build
 - 遇到损坏的任务集合，保留原始存储，显示可读取事项并暂停事项写入，避免覆盖待恢复的数据。
 - 测试过程中未捕获页面 JavaScript 异常或控制台错误。
 
-截图 `preview-dark.png`、`preview-paper.png`、`preview-mobile.png` 使用示例事项，仅供视觉参考。
+截图见 `docs/screenshots/`（示例事项，仅供视觉参考）；历史版本的文档已归档到 `docs/archive/`。
+
+---
+
+## English
+
+**Make Today Count** — a small, self-hosted agenda that I actually use daily.
+
+| Piece | What it does | Where it runs |
+|---|---|---|
+| Web app (Vite + CloudBase) | Tasks as single day / multi-day range / recurring, tick-off with per-day history, focus timer, 365-day heatmap, ZIP backup & restore | CloudBase static hosting |
+| Reminder engine (`reminder-tick`) | Every minute: due reminders, 08:00 digest (overdue + countdown), 20:30 evening wrap-up → WeCom / Feishu webhook | Cloud function + cron trigger |
+| QQ bot (`bot/`, optional) | Say one sentence — or paste a whole notice — in QQ to record tasks; it asks "done?" once a task's time has passed and ticks it off when you reply | Your own Windows machine, with QQ running |
+
+**Design note.** The database is the single source of truth. Reminders must run 24/7, so they live in the cloud; the QQ bot is just an entry point and is allowed to go offline with your PC.
+
+**Run it**
+
+```powershell
+npm install
+npm run dev        # http://127.0.0.1:5173
+npm run check      # static project checks (41 key entry points)
+npm run build      # produces dist/ for CloudBase static hosting
+```
+
+Backend setup — CloudBase environment, PostgreSQL migrations, WeCom webhook, cron trigger — is documented in `docs/提醒功能部署手册.md` (Chinese) and `cloudbase/migrations/`.
+
+**QQ bot (optional).** See [`bot/README.md`](bot/README.md). Needs Windows, a logged-in QQ client (SnowLuma is an injector), and AstrBot. Its 119 unit tests run offline:
+
+```powershell
+cd bot
+python -m unittest discover -s tests -t .
+```
+
+**Stack.** Vanilla JS (no framework) + Vite, CloudBase PostgreSQL with row-level security, Node.js cloud functions, and a Python plugin for AstrBot.
+
+**Credits.** Fonts and the pixel-pet reference project are credited in `THIRD_PARTY_NOTICES.md`.

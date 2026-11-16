@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>群聊策略</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="head">
+      <div>
+        <h1>群聊策略</h1>
+        <p class="sub">决定每个群怎么用：陪聊、只听不说，还是完全忽略。</p>
+      </div>
+      <div class="actions">
+        <button id="reload" class="btn ghost">刷新群列表</button>
+        <button id="save" class="btn primary">保存</button>
+      </div>
+    </header>
+
+    <div id="banner" class="banner hidden"></div>
+
+    <div class="toolbar">
+      <input id="search" class="search" type="search" placeholder="搜索群名或群号…" />
+      <div class="legend">
+        <span class="chip chat">陪聊</span>
+        <span class="chip watch">只听不说</span>
+        <span class="chip ignore">忽略</span>
+      </div>
+    </div>
+
+    <main id="list" class="list">
+      <div class="empty">加载中…</div>
+    </main>
+
+    <footer class="foot">
+      <span id="summary">—</span>
+    </footer>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

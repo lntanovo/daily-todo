@@ -1,0 +1,16 @@
+{
+  "watch_groups": [],
+  "chat_groups": [],
+  "provider_id": "",
+  "extract_interval_sec": 60,
+  "extract_batch_size": 40,
+  "extract_max_chars": 200,
+  "remind_lead_min": 30,
+  "allday_remind_hour": 21,
+  "daily_digest": "08:30",
+  "daily_token_budget": 300000,
+  "max_group_msgs_per_hour": 300,
+  "min_text_len": 4,
+  "retention_days": 90,
+  "min_confidence": 0.6
+}

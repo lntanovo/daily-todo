@@ -1,0 +1,26 @@
+# 运行数据与第三方产物（都不入库）
+vendor/
+tools/snowluma/
+tools/*.zip
+astrbot/
+data/
+logs/
+.uv/
+*.db
+*.db-wal
+*.db-shm
+__pycache__/
+*.pyc
+.pytest_cache/
+acl-reports/
+
+# 早期计划与旧笔记（历史归档，不入库）
+docs/archive/
+
+# 密钥与本地配置
+config/config.json
+config/local-notes.md
+config/persona.xiaosha.md
+.env
+*.pem
+*.key

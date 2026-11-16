@@ -1,0 +1,172 @@
+{
+  "watch_groups": {
+    "description": "静默监听群（只入库抽取，机器人绝不发言）",
+    "type": "list",
+    "default": [],
+    "hint": "填写 QQ 群号，例如 [123456789]。这些群不需要机器人 @ 响应，也不会收到任何回复。"
+  },
+  "chat_groups": {
+    "description": "陪聊群（交给 AstrBot 原生 AI 处理，本插件不做任何干预）",
+    "type": "list",
+    "default": [],
+    "hint": "仅用于文档说明与 /状态 展示；是否回复仍由 AstrBot 的唤醒前缀与白名单决定。"
+  },
+  "provider_id": {
+    "description": "抽取使用的模型提供商 ID",
+    "type": "string",
+    "default": "",
+    "hint": "留空则使用 AstrBot 配置里的默认对话提供商。群聊批量抽取用它。"
+  },
+  "capture_provider_id": {
+    "description": "私聊抽取专用模型（可选，建议用更聪明的）",
+    "type": "string",
+    "default": "",
+    "hint": "留空则跟 provider_id 一样。「数一件事」这种活换个强模型（如 deepseek-chat / 带思考的模型）比改 prompt 更见效。"
+  },
+  "capture_repair": {
+    "description": "漏段自动补抽",
+    "type": "bool",
+    "default": true,
+    "hint": "编号段里有没答上来的，自动再问一次模型。关掉可以省钱，但漏条目就没人兜了。"
+  },
+  "capture_max_segments": {
+    "description": "一条私聊最多拆成几段去抽取",
+    "type": "int",
+    "default": 12,
+    "hint": "超过的段不编号、只作为上下文，避免一条超长消息把 prompt 撑爆。"
+  },
+  "followup_enabled": {
+    "description": "到点追问「完成了吗」",
+    "type": "bool",
+    "default": true,
+    "hint": "任务过了自己的时间还在今天没打勾，就私聊问一句；回「完成」自动去云端标记完成。"
+  },
+  "followup_grace_min": {
+    "description": "到点后几分钟再问",
+    "type": "int",
+    "default": 15,
+    "hint": "避免刚开课/刚截止就问；设 0 表示到点立刻问。"
+  },
+  "followup_check_sec": {
+    "description": "多久检查一次有没有到点的任务（秒）",
+    "type": "int",
+    "default": 300,
+    "hint": "每次检查会读一次云端任务列表，别设太密；300 秒足够。"
+  },
+  "followup_max_items": {
+    "description": "一次最多问几项",
+    "type": "int",
+    "default": 6,
+    "hint": "同时到点的任务会合成一条编号消息，超过这个数的下一轮再问。"
+  },
+  "extract_interval_sec": {
+    "description": "抽取批次间隔（秒）",
+    "type": "int",
+    "default": 60
+  },
+  "extract_batch_size": {
+    "description": "单批最多处理多少条消息",
+    "type": "int",
+    "default": 40
+  },
+  "extract_max_chars": {
+    "description": "单条消息截断长度（字符）",
+    "type": "int",
+    "default": 200
+  },
+  "remind_lead_min": {
+    "description": "日程开始前多少分钟提醒",
+    "type": "int",
+    "default": 30
+  },
+  "allday_remind_hour": {
+    "description": "全天事件在前一天的几点提醒（0-23）",
+    "type": "int",
+    "default": 21
+  },
+  "daily_digest": {
+    "description": "每日简报时间（HH:MM，留空关闭）",
+    "type": "string",
+    "default": "08:30"
+  },
+  "daily_token_budget": {
+    "description": "每日 token 预算上限",
+    "type": "int",
+    "default": 300000,
+    "hint": "超限后只入库不调模型，次日 0 点自动恢复。"
+  },
+  "max_group_msgs_per_hour": {
+    "description": "单个群每小时最多入库多少条",
+    "type": "int",
+    "default": 300
+  },
+  "min_text_len": {
+    "description": "入库消息最小长度",
+    "type": "int",
+    "default": 4
+  },
+  "retention_days": {
+    "description": "原始消息保留天数",
+    "type": "int",
+    "default": 90
+  },
+  "min_confidence": {
+    "description": "低于该置信度的事件进入待确认，不提醒",
+    "type": "float",
+    "default": 0.6
+  },
+  "list_days": {
+    "description": "/任务 里「未来几天」的窗口长度",
+    "type": "int",
+    "default": 7,
+    "hint": "默认列出未来 7 天的任务；逾期和今天总是会显示。"
+  },
+  "daily_push_days": {
+    "description": "每日简报里「未来几天」的窗口长度",
+    "type": "int",
+    "default": 7,
+    "hint": "默认看未来 7 天，避免只盯着最近几天；时间在私聊里说「每天 9 点提醒我」设置。"
+  },
+  "catchup_enabled": {
+    "description": "开机补拉：启动时把关机期间漏掉的私聊补问一遍",
+    "type": "bool",
+    "default": true,
+    "hint": "只补拉主号（AstrBot 管理员）发来的私聊，逐条问确认，确认前不写云端。"
+  },
+  "catchup_max_age_days": {
+    "description": "补拉只逐条问最近几天的消息",
+    "type": "int",
+    "default": 7,
+    "hint": "更早的消息只在开头汇总条数，不逐条打扰。"
+  },
+  "catchup_history_count": {
+    "description": "每次向 OneBot 拉取的历史条数上限",
+    "type": "int",
+    "default": 200,
+    "hint": "关机期间的消息一般远少于此；拉取失败时下一轮会自动重试。"
+  },
+  "catchup_max_items": {
+    "description": "一次补拉最多排队多少条待确认",
+    "type": "int",
+    "default": 20,
+    "hint": "超出的更旧消息会丢弃并写进日志，避免开机后连问几十条。"
+  },
+  "cloud_env_id": {
+    "description": "云端环境 ID（日程站点所在环境）",
+    "type": "string",
+    "default": "",
+    "hint": "例如 daily-todo-xxxx。用来把私聊记下的事项写进站点同一张任务表。"
+  },
+  "cloud_api_key": {
+    "description": "云端服务端 Key（只存在本机，用于写库）",
+    "type": "string",
+    "default": "",
+    "hint": "相当于数据库管理员凭据，不要外传、不要截图。填错时私聊确认会提示写入失败。"
+  },
+  "owner_id": {
+    "description": "写入目标的账号 uid",
+    "type": "string",
+    "default": "",
+    "hint": "站点上你自己的账号标识，形如 lnreg_ 开头的一串。填错会写到别人名下。"
+  }
+}

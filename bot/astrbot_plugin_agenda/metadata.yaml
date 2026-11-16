@@ -1,0 +1,7 @@
+name: astrbot_plugin_agenda
+display_name: 群聊与私聊日程助手
+desc: 私聊一句话记日程（先回执再写云端）、一段话里多件事逐条抽取、开机补拉关机期间漏掉的私聊、到点追问完成并自动标记；可在指定群聊静默旁听，其余群保持原有陪聊行为不变。
+short_desc: 日程抽取 + 开机补拉 + 到点追问完成 + 定时提醒
+author: deepseekharness
+version: 0.3.0
+repo: ""

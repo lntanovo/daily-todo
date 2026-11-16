@@ -1,0 +1,4 @@
+# No third-party dependencies.
+# The plugin only uses the standard library plus what AstrBot already ships
+# (astrbot.api, astrbot.core). LLM access goes through context.llm_generate,
+# so no extra HTTP client or SDK is needed.
